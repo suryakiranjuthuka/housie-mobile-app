@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Volume2, VolumeX, Trophy, Play, Award, CheckSquare, X } from 'lucide-react';
+import { Volume2, VolumeX, Trophy, Play, Award, CheckSquare, X, Mic } from 'lucide-react';
 import Confetti from './Confetti';
 
 export default function Board({ 
@@ -8,12 +8,15 @@ export default function Board({
   activePlayers, 
   tickets, 
   prizes, 
+  calledNumbers,
+  setCalledNumbers,
+  history,
+  setHistory,
+  currentNumber,
+  setCurrentNumber,
   onClaimPrize, 
   onEndGame 
 }) {
-  const [calledNumbers, setCalledNumbers] = useState(new Set());
-  const [history, setHistory] = useState([]);
-  const [currentNumber, setCurrentNumber] = useState(null);
   const [mute, setMute] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [claimingPrize, setClaimingPrize] = useState(null);
@@ -21,6 +24,14 @@ export default function Board({
   
   // Interactive tooltips state
   const [activeTooltip, setActiveTooltip] = useState(null);
+
+  const sanitizeForSpeech = (text) => {
+    return text
+      .replace(/\bSurya\b/gi, "Soorya")
+      .replace(/\bAtta\b/gi, "Att-ta")
+      .replace(/\bKasi\b/gi, "Kaasee")
+      .replace(/\bTanuja\b/gi, "Than-oo-ja");
+  };
 
   const getIndianFemaleVoice = (voices) => {
     let ideal = voices.find(v => 
@@ -52,13 +63,13 @@ export default function Board({
         '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine'
       };
       const words = digits.map(d => digitWords[d]).join(' ');
-      const spoken = num < 10 ? `single digit ${num}` : `${words} ${num}`;
+      const spoken = num < 10 ? `single digit, ${num}` : `${words}, ${num}`;
 
       const utterance = new SpeechSynthesisUtterance(spoken);
       const voices = window.speechSynthesis.getVoices();
       const voice = getIndianFemaleVoice(voices);
       if (voice) utterance.voice = voice;
-      utterance.rate = 1.0;
+      utterance.rate = 0.9; // Slightly slower for better articulation
       window.speechSynthesis.speak(utterance);
     } catch (e) {
       console.warn("TTS failed:", e);
@@ -86,7 +97,7 @@ export default function Board({
     setCurrentNumber(num);
     
     announceNumber(num);
-  }, [calledNumbers, announceNumber]);
+  }, [calledNumbers, announceNumber, setCalledNumbers, setHistory, setCurrentNumber]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
@@ -110,13 +121,39 @@ export default function Board({
     if (mute) return;
     try {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(`${prizeName} claimed by ${winners}`);
+      const utterance = new SpeechSynthesisUtterance(`${prizeName} claimed by ${sanitizeForSpeech(winners)}`);
       const voices = window.speechSynthesis.getVoices();
       const voice = getIndianFemaleVoice(voices);
       if (voice) utterance.voice = voice;
-      utterance.rate = 1.0;
+      utterance.rate = 0.9;
       window.speechSynthesis.speak(utterance);
     } catch (e) {}
+  };
+
+  const announceRemainingPrizes = () => {
+    if (mute) return;
+    const unclaimed = prizes
+      .filter(p => !p.winners || p.winners.length === 0)
+      .map(p => p.name);
+    
+    let text = "";
+    if (unclaimed.length === 0) {
+      text = "All prizes have been claimed!";
+    } else {
+      text = `Remaining prizes to claim are: ${unclaimed.join(', ')}`;
+    }
+    
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      const voices = window.speechSynthesis.getVoices();
+      const voice = getIndianFemaleVoice(voices);
+      if (voice) utterance.voice = voice;
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn("Announcement failed:", e);
+    }
   };
 
   const winningNumbersMap = {};
@@ -171,6 +208,13 @@ export default function Board({
           <h2 className="text-2xl font-black text-white tracking-wide">₹{totalPool}</h2>
         </div>
         <div className="flex gap-2 relative z-10">
+          <button 
+            onClick={announceRemainingPrizes}
+            className="p-3 rounded-2xl border transition-all duration-200 active:scale-95 shadow-inner bg-black/40 border-white/5 text-cyan-400 hover:bg-black/60 hover:text-cyan-300 animate-pulse"
+            title="Read remaining prizes"
+          >
+            <Mic className="w-5 h-5" />
+          </button>
           <button 
             onClick={() => setMute(!mute)} 
             className={`p-3 rounded-2xl border transition-all duration-200 active:scale-95 shadow-inner ${mute ? 'bg-rose-500/20 border-rose-500/30 text-rose-400' : 'bg-black/40 border-white/5 text-slate-300 hover:bg-black/60 hover:text-white'}`}

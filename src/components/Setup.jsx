@@ -124,10 +124,11 @@ export default function Setup({
               <Banknote className="w-4 h-4 text-cyan-400" />
               Ticket Price (₹)
             </label>
-            <input
+             <input
               type="number"
               value={ticketPrice}
               onChange={(e) => setTicketPrice(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
+              onFocus={(e) => e.target.select()}
               className="w-full bg-white/5 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 rounded-2xl px-5 py-4 text-2xl font-black text-center text-white outline-none transition-all duration-200"
             />
           </div>
@@ -219,6 +220,21 @@ export default function Setup({
         </div>
       ) : (
         <div className="space-y-6 relative z-10">
+          {/* Ticket Price Settings (Bento Box) */}
+          <div className="bg-black/40 border border-white/5 rounded-3xl p-5 shadow-inner space-y-3">
+            <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <Banknote className="w-4 h-4 text-cyan-400" />
+              Ticket Price (₹)
+            </label>
+            <input
+              type="number"
+              value={ticketPrice}
+              onChange={(e) => setTicketPrice(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
+              onFocus={(e) => e.target.select()}
+              className="w-full bg-white/5 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 rounded-2xl px-5 py-3 text-lg font-black text-center text-white outline-none transition-all duration-200"
+            />
+          </div>
+
           {/* Ticket Counts Allocation (Bento Box 1) */}
           <div className="bg-black/40 border border-white/5 rounded-3xl p-5 shadow-inner space-y-4">
             <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">

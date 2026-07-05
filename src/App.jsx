@@ -19,6 +19,9 @@ export default function App() {
   const [currentTickets, setCurrentTickets] = useState({});
   const [currentPrizes, setCurrentPrizes] = useState([]);
   const [gameIndex, setGameIndex] = useState(1);
+  const [calledNumbers, setCalledNumbers] = useState(new Set());
+  const [history, setHistory] = useState([]);
+  const [currentNumber, setCurrentNumber] = useState(null);
 
   // Load saved players and session state on mount
   useEffect(() => {
@@ -40,6 +43,9 @@ export default function App() {
         setCurrentTickets(data.currentTickets);
         setCurrentPrizes(data.currentPrizes);
         setGameIndex(data.gameIndex);
+        setCalledNumbers(new Set(data.calledNumbers || []));
+        setHistory(data.history || []);
+        setCurrentNumber(data.currentNumber || null);
         setSessionActive(true);
       }
     } catch (e) {
@@ -59,13 +65,16 @@ export default function App() {
         appMode,
         currentTickets,
         currentPrizes,
-        gameIndex
+        gameIndex,
+        calledNumbers: Array.from(calledNumbers),
+        history,
+        currentNumber
       };
       localStorage.setItem('housie_session_state', JSON.stringify(sessionData));
     } else {
       localStorage.removeItem('housie_session_state');
     }
-  }, [sessionActive, ticketPrice, players, activePlayers, games, cumulativeLedger, appMode, currentTickets, currentPrizes, gameIndex]);
+  }, [sessionActive, ticketPrice, players, activePlayers, games, cumulativeLedger, appMode, currentTickets, currentPrizes, gameIndex, calledNumbers, history, currentNumber]);
 
   const handleSetupComplete = (setupData) => {
     setTicketPrice(setupData.ticketPrice);
@@ -85,6 +94,10 @@ export default function App() {
     setupData.players.forEach(p => ledger[p] = 0);
     setCumulativeLedger(ledger);
     
+    setCalledNumbers(new Set());
+    setHistory([]);
+    setCurrentNumber(null);
+
     setSessionActive(true);
     setAppMode('board');
   };
@@ -178,13 +191,20 @@ export default function App() {
     setCurrentTickets(nextTickets);
     setCurrentPrizes(nextPrizes);
     setGameIndex(gameIndex + 1);
+    setCalledNumbers(new Set());
+    setHistory([]);
+    setCurrentNumber(null);
     setAppMode('board');
   };
 
   const handleCustomSetupStart = (setupData) => {
+    setTicketPrice(setupData.ticketPrice);
     setCurrentTickets(setupData.tickets);
     setCurrentPrizes(setupData.prizes);
     setGameIndex(gameIndex + 1);
+    setCalledNumbers(new Set());
+    setHistory([]);
+    setCurrentNumber(null);
     setAppMode('board');
   };
 
@@ -200,6 +220,9 @@ export default function App() {
       setCumulativeLedger({});
       setCurrentTickets({});
       setCurrentPrizes([]);
+      setCalledNumbers(new Set());
+      setHistory([]);
+      setCurrentNumber(null);
       localStorage.removeItem('housie_session_state');
     }
   };
@@ -313,6 +336,12 @@ export default function App() {
             activePlayers={activePlayers}
             tickets={currentTickets}
             prizes={currentPrizes}
+            calledNumbers={calledNumbers}
+            setCalledNumbers={setCalledNumbers}
+            history={history}
+            setHistory={setHistory}
+            currentNumber={currentNumber}
+            setCurrentNumber={setCurrentNumber}
             onClaimPrize={handleClaimPrize}
             onEndGame={handleEndGame}
           />

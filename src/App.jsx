@@ -408,7 +408,7 @@ export default function App() {
                         <div>
                           <span className="text-lg font-extrabold text-white block tracking-wide">{player}</span>
                           <span className="text-xs text-slate-400 font-medium mt-1 block">
-                            Total Buy-in: ₹{buyIn} | Winnings: ₹{won.toFixed(0)}
+                            Total Buy-in: ₹{buyIn} | Winnings: ₹{won.toFixed(2)}
                           </span>
                         </div>
                         <span className={`text-xl font-black drop-shadow-md ${net > 0 ? 'text-emerald-400' : net < 0 ? 'text-rose-400' : 'text-slate-400'}`}>

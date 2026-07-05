@@ -155,7 +155,7 @@ export default function Ledger({
                         )}
                       </div>
                       <span className="text-[11px] text-slate-400 font-bold mt-1 block">
-                        Buy-in: ₹{buyIn} | Winnings: ₹{roundWinnings.toFixed(0)}
+                        Buy-in: ₹{buyIn} | Winnings: ₹{roundWinnings.toFixed(2)}
                       </span>
                     </div>
 
@@ -212,7 +212,7 @@ export default function Ledger({
                           )}
                         </div>
                         <span className="text-[11px] text-slate-400 font-bold mt-1 block">
-                          Total Buy-in: ₹{buyIn} | Winnings: ₹{won.toFixed(0)}
+                          Total Buy-in: ₹{buyIn} | Winnings: ₹{won.toFixed(2)}
                         </span>
                       </div>
 

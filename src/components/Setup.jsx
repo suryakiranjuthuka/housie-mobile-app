@@ -21,9 +21,11 @@ export default function Setup({
   const [players, setPlayers] = useState(initialPlayers.length > 0 ? initialPlayers : []);
   const [newPlayerName, setNewPlayerName] = useState('');
   const [tickets, setTickets] = useState(() => {
-    if (Object.keys(initialTickets).length > 0) return initialTickets;
     const t = {};
-    initialPlayers.forEach(p => { t[p] = 1; });
+    const playerList = initialPlayers.length > 0 ? initialPlayers : [];
+    playerList.forEach(p => {
+      t[p] = initialTickets[p] !== undefined ? initialTickets[p] : 1;
+    });
     return t;
   });
   const [selectedPreset, setSelectedPreset] = useState(0);

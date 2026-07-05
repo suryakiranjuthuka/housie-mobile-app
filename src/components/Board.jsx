@@ -277,27 +277,35 @@ export default function Board({
                 onClick={() => openClaimModal(p)}
                 className={`w-full text-left p-4 rounded-2xl border transition duration-150 flex items-center justify-between group ${
                   hasWinners 
-                    ? 'bg-zinc-950/20 border-zinc-700/60' 
-                    : 'bg-zinc-950 border-zinc-850 hover:border-zinc-700'
+                    ? 'bg-emerald-950/15 border-emerald-900/60 hover:border-emerald-700/80' 
+                    : 'bg-amber-950/10 border-amber-900/60 hover:border-amber-700/80'
                 }`}
               >
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm md:text-base font-extrabold text-zinc-200">{p.name}</span>
-                    <span className="text-[10px] font-black bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded text-zinc-400">
+                    <span className={`text-sm md:text-base font-extrabold ${hasWinners ? 'text-emerald-400' : 'text-amber-300'}`}>
+                      {p.name}
+                    </span>
+                    <span className={`text-[10px] font-black border px-2 py-0.5 rounded ${
+                      hasWinners 
+                        ? 'bg-emerald-950/40 border-emerald-900/50 text-emerald-400' 
+                        : 'bg-amber-950/20 border-amber-900/40 text-amber-300'
+                    }`}>
                       ₹{p.value}
                     </span>
                   </div>
                   {hasWinners ? (
-                    <span className="text-xxs text-zinc-400 font-bold block">
+                    <span className="text-xxs text-emerald-500/80 font-bold block">
                       Claimed: {p.winners.join(', ')} (on #{p.winningNumber})
                     </span>
                   ) : (
-                    <span className="text-xxs text-zinc-500 block">Tap to configure winners</span>
+                    <span className="text-xxs text-amber-550 font-semibold block">Tap to configure winners</span>
                   )}
                 </div>
                 <div className={`p-2 rounded-lg border transition ${
-                  hasWinners ? 'bg-zinc-900 border-zinc-700 text-zinc-300' : 'bg-zinc-900 border-zinc-800 text-zinc-500 group-hover:text-zinc-300'
+                  hasWinners 
+                    ? 'bg-emerald-950 border-emerald-900 text-emerald-400' 
+                    : 'bg-amber-950/40 border-amber-900/60 text-amber-400'
                 }`}>
                   <Award className="w-4.5 h-4.5" />
                 </div>

@@ -58,6 +58,11 @@ export default function Setup({
   };
 
   const handleNextStep = () => {
+    const parsedPrice = parseFloat(ticketPrice);
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+      alert('Please enter a valid ticket price greater than 0!');
+      return;
+    }
     if (players.length < 2) {
       alert('Please add at least 2 players to start a session!');
       return;
@@ -123,7 +128,7 @@ export default function Setup({
             <input
               type="number"
               value={ticketPrice}
-              onChange={(e) => setTicketPrice(Math.max(1, parseInt(e.target.value) || 0))}
+              onChange={(e) => setTicketPrice(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
               className="w-full bg-slate-950 border border-slate-800 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-xl px-4 py-3 text-lg font-bold text-center text-violet-300 outline-none transition"
             />
           </div>

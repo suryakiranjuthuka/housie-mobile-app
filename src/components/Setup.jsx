@@ -8,13 +8,26 @@ const PRESETS = [
   { name: 'Even Split', description: 'Balanced 20% across all 5 prizes', pct: [20, 20, 20, 20, 20] }
 ];
 
-export default function Setup({ onComplete, savedPlayers }) {
-  const [ticketPrice, setTicketPrice] = useState(50);
-  const [players, setPlayers] = useState([]);
+export default function Setup({ 
+  onComplete, 
+  savedPlayers = [], 
+  onDeleteSavedPlayer,
+  initialPlayers = [],
+  initialTicketPrice = 50,
+  initialStep = 1,
+  initialTickets = {}
+}) {
+  const [ticketPrice, setTicketPrice] = useState(initialTicketPrice);
+  const [players, setPlayers] = useState(initialPlayers.length > 0 ? initialPlayers : []);
   const [newPlayerName, setNewPlayerName] = useState('');
-  const [tickets, setTickets] = useState({});
+  const [tickets, setTickets] = useState(() => {
+    if (Object.keys(initialTickets).length > 0) return initialTickets;
+    const t = {};
+    initialPlayers.forEach(p => { t[p] = 1; });
+    return t;
+  });
   const [selectedPreset, setSelectedPreset] = useState(0);
-  const [step, setStep] = useState(1); // 1: Players & Price, 2: Tickets & Prizes
+  const [step, setStep] = useState(initialStep); // 1: Players & Price, 2: Tickets & Prizes
 
   // Import saved players choice
   const [availableToImport, setAvailableToImport] = useState([]);
@@ -145,14 +158,25 @@ export default function Setup({ onComplete, savedPlayers }) {
                 <p className="text-xxs text-slate-500 font-semibold mb-2 uppercase tracking-wider">Quick Import</p>
                 <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
                   {availableToImport.map((p) => (
-                    <button
+                    <div
                       key={p}
-                      onClick={() => addPlayer(p)}
-                      className="bg-slate-950 hover:bg-slate-800 border border-slate-850 hover:border-slate-700 text-xxs text-slate-300 px-2 py-1 rounded-lg flex items-center gap-1 transition"
+                      className="bg-slate-950 border border-slate-850 text-xxs text-slate-300 rounded-lg flex items-center overflow-hidden transition"
                     >
-                      <UserPlus className="w-3 h-3 text-slate-500" />
-                      {p}
-                    </button>
+                      <button
+                        onClick={() => addPlayer(p)}
+                        className="hover:bg-slate-800 px-2 py-1 flex items-center gap-1 border-r border-slate-900/50 transition font-bold"
+                      >
+                        <UserPlus className="w-3 h-3 text-slate-500" />
+                        {p}
+                      </button>
+                      <button
+                        onClick={() => onDeleteSavedPlayer && onDeleteSavedPlayer(p)}
+                        className="hover:bg-rose-950/20 text-slate-500 hover:text-rose-400 px-1.5 py-1 transition"
+                        title="Delete from history"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
                   ))}
                 </div>
               </div>

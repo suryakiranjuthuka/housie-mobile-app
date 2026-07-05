@@ -151,6 +151,10 @@ export default function App() {
   };
 
   const handleNextRound = () => {
+    setAppMode('round-setup-prompt');
+  };
+
+  const handleQuickStart = () => {
     const nextIdx = gameIndex + 1;
     setGameIndex(nextIdx);
 
@@ -182,9 +186,23 @@ export default function App() {
     setAppMode('board');
   };
 
+  const handleCustomSetupStart = (setupData) => {
+    const nextIdx = gameIndex + 1;
+    setGameIndex(nextIdx);
+    setCurrentTickets(setupData.tickets);
+    setCurrentPrizes(setupData.prizes);
+    setAppMode('board');
+  };
+
   const handleEndSession = () => {
     if (!window.confirm("Are you sure you want to end the session? This will lock current scores and show final payouts.")) return;
     setAppMode('final');
+  };
+
+  const handleDeleteSavedPlayer = (name) => {
+    const updated = savedPlayers.filter(p => p !== name);
+    setSavedPlayers(updated);
+    localStorage.setItem('housie_players', JSON.stringify(updated));
   };
 
   const handleExitSession = () => {
@@ -301,7 +319,7 @@ export default function App() {
       {/* Main Container */}
       <main className="flex-1 px-4 py-2">
         {appMode === 'setup' && (
-          <Setup onComplete={handleSetupComplete} savedPlayers={savedPlayers} />
+          <Setup onComplete={handleSetupComplete} savedPlayers={savedPlayers} onDeleteSavedPlayer={handleDeleteSavedPlayer} />
         )}
 
         {appMode === 'board' && (
@@ -328,6 +346,44 @@ export default function App() {
             onAddPlayerMidSession={handleAddPlayerMidSession}
             onNextRound={handleNextRound}
             onEndSession={handleEndSession}
+          />
+        )}
+
+        {appMode === 'round-setup-prompt' && (
+          <div className="max-w-md mx-auto bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-6 text-slate-100 my-4 text-center">
+            <div>
+              <span className="text-xxs font-extrabold text-violet-400 tracking-wider uppercase">Setup Round #{gameIndex + 1}</span>
+              <h2 className="text-xl font-black mt-1">Configure Game Settings</h2>
+            </div>
+            
+            <p className="text-xs text-slate-400">
+              Choose to copy the previous ticket numbers & prize distributions or configure them manually.
+            </p>
+            
+            <div className="space-y-3">
+              <button
+                onClick={handleQuickStart}
+                className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-violet-950/40"
+              >
+                ⚡ Quick Start: Use Same Settings
+              </button>
+              <button
+                onClick={() => setAppMode('round-setup-custom')}
+                className="w-full bg-slate-950 border border-slate-850 hover:bg-slate-900 text-slate-300 font-bold py-3.5 rounded-xl transition"
+              >
+                ⚙️ Custom Setup: Configure Tickets
+              </button>
+            </div>
+          </div>
+        )}
+
+        {appMode === 'round-setup-custom' && (
+          <Setup
+            initialStep={2}
+            initialPlayers={activePlayers}
+            initialTicketPrice={ticketPrice}
+            initialTickets={currentTickets}
+            onComplete={handleCustomSetupStart}
           />
         )}
 

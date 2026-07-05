@@ -25,6 +25,33 @@ export default function Board({
   const [claimingPrize, setClaimingPrize] = useState(null); // holds the prize object being claimed
   const [selectedWinners, setSelectedWinners] = useState([]);
 
+  const getIndianFemaleVoice = (voices) => {
+    let ideal = voices.find(v => 
+      v.lang.replace('_', '-').toLowerCase().startsWith('en-in') && 
+      (v.name.toLowerCase().includes('female') || 
+       v.name.toLowerCase().includes('raveena') || 
+       v.name.toLowerCase().includes('isha') || 
+       v.name.toLowerCase().includes('veena') || 
+       v.name.toLowerCase().includes('kanya') || 
+       v.name.toLowerCase().includes('tara') || 
+       v.name.toLowerCase().includes('heera') || 
+       v.name.toLowerCase().includes('priya') || 
+       v.name.toLowerCase().includes('neerja') || 
+       !v.name.toLowerCase().includes('male'))
+    );
+    
+    if (!ideal) {
+      ideal = voices.find(v => v.lang.replace('_', '-').toLowerCase().startsWith('en-in'));
+    }
+    if (!ideal) {
+      ideal = voices.find(v => v.lang.replace('_', '-').toLowerCase().startsWith('hi-in'));
+    }
+    if (!ideal) {
+      ideal = voices.find(v => v.name.toLowerCase().includes('female') && v.lang.toLowerCase().startsWith('en'));
+    }
+    return ideal;
+  };
+
   // Setup standard voice announcements
   const announceNumber = (num) => {
     if (mute) return;
@@ -36,13 +63,12 @@ export default function Board({
         '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine'
       };
       const words = digits.map(d => digitWords[d]).join(' ');
-      const spoken = num < 10 ? `only ${words} ${num}` : `${words} ${num}`;
+      const spoken = num < 10 ? `single digit ${words} ${num}` : `${words} ${num}`;
 
       const utterance = new SpeechSynthesisUtterance(spoken);
-      // Try to find an Indian English or natural voice if available
       const voices = window.speechSynthesis.getVoices();
-      const idealVoice = voices.find(v => v.lang.includes('IN') || v.name.includes('Tara') || v.name.includes('Raveena'));
-      if (idealVoice) utterance.voice = idealVoice;
+      const voice = getIndianFemaleVoice(voices);
+      if (voice) utterance.voice = voice;
       utterance.rate = 1.0;
       window.speechSynthesis.speak(utterance);
     } catch (e) {
@@ -55,6 +81,10 @@ export default function Board({
     try {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(`${prizeName} claimed by ${winners}`);
+      const voices = window.speechSynthesis.getVoices();
+      const voice = getIndianFemaleVoice(voices);
+      if (voice) utterance.voice = voice;
+      utterance.rate = 1.0;
       window.speechSynthesis.speak(utterance);
     } catch (e) {}
   };

@@ -278,46 +278,37 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-zinc-950 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900/30 via-zinc-950 to-zinc-950 text-zinc-100 flex flex-col justify-between font-sans">
-      {/* Universal header if active */}
-      {sessionActive && (
-        <header className="bg-zinc-900/60 border-b border-zinc-850 px-4 py-3 flex justify-between items-center sticky top-0 backdrop-blur-md z-30">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-zinc-400" />
-            <span className="text-[10px] font-black text-zinc-400 tracking-wider uppercase">Active Housy Session</span>
-          </div>
-          
-          <div className="flex gap-2">
-            {appMode !== 'final' && (
-              <div className="flex bg-zinc-950 border border-zinc-850 rounded-xl p-0.5 text-xxs font-bold">
-                <button
-                  onClick={() => setAppMode('board')}
-                  className={`px-3 py-1.5 rounded-lg transition duration-100 ${appMode === 'board' ? 'bg-zinc-100 text-zinc-950 font-black shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-                >
-                  Caller Board
-                </button>
-                <button
-                  disabled={games.length === 0}
-                  onClick={() => setAppMode('ledger')}
-                  className={`px-3 py-1.5 rounded-lg transition duration-100 disabled:opacity-30 ${appMode === 'ledger' ? 'bg-zinc-100 text-zinc-950 font-black shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-                >
-                  Ledger
-                </button>
-              </div>
-            )}
+      {/* Main Container */}
+      <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-5">
+        {/* Inline Navigation Card */}
+        {sessionActive && appMode !== 'final' && (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-3 flex justify-between items-center shadow-xl">
+            <div className="flex bg-zinc-950 border border-zinc-850 rounded-xl p-0.5 text-[10px] font-bold">
+              <button
+                onClick={() => setAppMode('board')}
+                className={`px-3 py-1.5 rounded-lg transition duration-100 ${appMode === 'board' ? 'bg-zinc-100 text-zinc-950 font-black shadow-sm' : 'text-zinc-550 hover:text-zinc-350'}`}
+              >
+                Caller Board
+              </button>
+              <button
+                disabled={games.length === 0}
+                onClick={() => setAppMode('ledger')}
+                className={`px-3 py-1.5 rounded-lg transition duration-100 disabled:opacity-30 ${appMode === 'ledger' ? 'bg-zinc-100 text-zinc-950 font-black shadow-sm' : 'text-zinc-550 hover:text-zinc-350'}`}
+              >
+                Ledger Standings
+              </button>
+            </div>
             
             <button
               onClick={handleExitSession}
-              className="p-1.5 bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 rounded-xl text-zinc-500 hover:text-zinc-300 transition duration-100"
-              title="Reset Session"
+              className="p-1.5 bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 rounded-xl text-zinc-500 hover:text-rose-450 transition duration-100 flex items-center justify-center"
+              title="Quit Session"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4.5 h-4.5" />
             </button>
           </div>
-        </header>
-      )}
+        )}
 
-      {/* Main Container */}
-      <main className="flex-1 px-4 py-2">
         {appMode === 'setup' && (
           <Setup onComplete={handleSetupComplete} savedPlayers={savedPlayers} onDeleteSavedPlayer={handleDeleteSavedPlayer} />
         )}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeftRight, Users, ChevronRight, Ban, Plus, Sparkles } from 'lucide-react';
+import { ArrowLeftRight, Users, ChevronRight, Ban, Plus, Sparkles, Trophy, ListCollapse, Award } from 'lucide-react';
 import { calculateSettlements } from '../utils/settlement';
 
 export default function Ledger({ 
@@ -14,10 +14,12 @@ export default function Ledger({
   onNextRound, 
   onEndSession 
 }) {
+  const [activeTab, setActiveTab] = useState('round'); // 'round' | 'session'
   const [showAddPlayer, setShowAddPlayer] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState('');
 
   const settlements = calculateSettlements(cumulativeLedger);
+  const lastGame = games[games.length - 1]; // get the details of the round just played
 
   const togglePlayerExclusion = (player) => {
     let updated;
@@ -48,104 +50,219 @@ export default function Ledger({
   };
 
   return (
-    <div className="max-w-md mx-auto space-y-5 pb-12">
-      {/* Session Standings Table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4 text-zinc-100">
-        <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
-          <div>
-            <span className="text-[10px] font-black text-zinc-500 tracking-wider uppercase">Leaderboard</span>
-            <h2 className="text-base font-black">Current Standings</h2>
-          </div>
-          <span className="text-[10px] font-black bg-zinc-950 border border-zinc-850 px-2 py-1 rounded-lg text-zinc-400">
-            {games.length} Games Played
-          </span>
-        </div>
+    <div className="max-w-md mx-auto space-y-6 pb-12">
+      {/* Switcher Tab between Current Round & Cumulative */}
+      <div className="bg-zinc-900 border border-zinc-805 rounded-3xl p-1.5 flex justify-between items-center shadow-lg w-full">
+        <button
+          onClick={() => setActiveTab('round')}
+          className={`flex-1 text-center py-2.5 rounded-2xl text-xs font-black transition duration-150 uppercase tracking-wider ${
+            activeTab === 'round' 
+              ? 'bg-zinc-100 text-zinc-950 shadow-md' 
+              : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          Round Recap
+        </button>
+        <button
+          onClick={() => setActiveTab('session')}
+          className={`flex-1 text-center py-2.5 rounded-2xl text-xs font-black transition duration-150 uppercase tracking-wider ${
+            activeTab === 'session' 
+              ? 'bg-zinc-100 text-zinc-950 shadow-md' 
+              : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          Session Ledger
+        </button>
+      </div>
 
-        <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-          {Object.entries(cumulativeLedger)
-            .sort((a, b) => b[1] - a[1])
-            .map(([player, net]) => {
-              const buyIn = games.reduce((sum, g) => sum + ((g.tickets[player] || 0) * ticketPrice), 0);
-              const won = games.reduce((sum, g) => {
+      {activeTab === 'round' && lastGame ? (
+        <div className="space-y-6">
+          {/* Detailed Prize Winners for last game */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4">
+            <h3 className="text-xs font-black text-zinc-400 tracking-widest uppercase flex items-center gap-2 border-b border-zinc-805 pb-3">
+              <Trophy className="w-4 h-4 text-zinc-500" />
+              Round #{lastGame.gameIndex} Prize Breakdown
+            </h3>
+            
+            <div className="space-y-2.5">
+              {lastGame.prizes.map((p) => {
+                const hasWinners = p.winners && p.winners.length > 0;
+                return (
+                  <div 
+                    key={p.id}
+                    className="p-3.5 bg-zinc-950 border border-zinc-850/60 rounded-2xl flex flex-col gap-1.5"
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-zinc-200">{p.name}</span>
+                      <span className="text-[10px] font-black bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded text-zinc-300">
+                        ₹{p.value}
+                      </span>
+                    </div>
+                    {hasWinners ? (
+                      <div className="flex flex-col gap-0.5 mt-0.5">
+                        <span className="text-xxs text-zinc-450 font-semibold uppercase tracking-wider">
+                          Won by: <strong className="text-zinc-100 font-extrabold">{p.winners.join(', ')}</strong>
+                        </span>
+                        <span className="text-[9px] text-zinc-500 font-medium">
+                          Drawn on Number {p.winningNumber} {p.winners.length > 1 && `(₹${(p.value / p.winners.length).toFixed(0)} each)`}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-xxs text-zinc-650 italic">Unclaimed</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Round Individual Balances */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4 text-zinc-100">
+            <h3 className="text-xs font-black text-zinc-400 tracking-widest uppercase flex items-center gap-2 border-b border-zinc-805 pb-3">
+              <ListCollapse className="w-4 h-4 text-zinc-500" />
+              Round Payout Ledgers
+            </h3>
+            
+            <div className="space-y-2">
+              {players.map(player => {
+                const isActive = lastGame.activePlayers.includes(player);
+                const roundTickets = isActive ? (lastGame.tickets[player] || 0) : 0;
+                const buyIn = roundTickets * ticketPrice;
+                
                 let roundWinnings = 0;
-                g.prizes.forEach(p => {
+                lastGame.prizes.forEach(p => {
                   if (p.winners.includes(player)) {
                     roundWinnings += p.value / p.winners.length;
                   }
                 });
-                return sum + roundWinnings;
-              }, 0);
+                const net = roundWinnings - buyIn;
 
-              const isActive = activePlayers.includes(player);
-
-              return (
-                <div 
-                  key={player}
-                  className="flex items-center justify-between p-3 bg-zinc-950 border border-zinc-850/60 rounded-2xl transition"
-                >
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-extrabold text-zinc-200">{player}</span>
-                      {!isActive && (
-                        <span className="text-[9px] bg-zinc-900 border border-zinc-800 text-zinc-500 font-bold px-1.5 py-0.2 rounded uppercase tracking-wider">
-                          Spectating
-                        </span>
-                      )}
+                return (
+                  <div 
+                    key={player}
+                    className="flex items-center justify-between p-3 bg-zinc-950 border border-zinc-850/60 rounded-2xl"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-extrabold text-zinc-200">{player}</span>
+                        {!isActive && (
+                          <span className="text-[9px] bg-zinc-900 border border-zinc-800 text-zinc-600 font-bold px-1.5 py-0.2 rounded uppercase">
+                            Spectator
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xxs text-zinc-500 font-medium block">
+                        Buy-in: ₹{buyIn} | Winnings: ₹{roundWinnings.toFixed(0)}
+                      </span>
                     </div>
-                    <span className="text-xxs text-zinc-500 font-medium block">
-                      Buy-in: ₹{buyIn} | Won: ₹{won.toFixed(0)}
+
+                    <span className={`text-sm font-black ${
+                      net >= 0 ? 'text-zinc-100' : 'text-zinc-500'
+                    }`}>
+                      {net >= 0 ? '+' : ''}₹{net.toFixed(2)}
                     </span>
                   </div>
-
-                  <span className={`text-sm font-black ${
-                    net >= 0 ? 'text-zinc-100' : 'text-zinc-500'
-                  }`}>
-                    {net >= 0 ? '+' : ''}₹{net.toFixed(2)}
-                  </span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Cumulative Standings */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4 text-zinc-100">
+            <h3 className="text-xs font-black text-zinc-400 tracking-widest uppercase flex items-center gap-2 border-b border-zinc-805 pb-3">
+              <Award className="w-4 h-4 text-zinc-500" />
+              Session Rankings
+            </h3>
+            
+            <div className="space-y-2">
+              {Object.entries(cumulativeLedger)
+                .sort((a, b) => b[1] - a[1])
+                .map(([player, net]) => {
+                  const buyIn = games.reduce((sum, g) => sum + ((g.tickets[player] || 0) * ticketPrice), 0);
+                  const won = games.reduce((sum, g) => {
+                    let roundWinnings = 0;
+                    g.prizes.forEach(p => {
+                      if (p.winners.includes(player)) {
+                        roundWinnings += p.value / p.winners.length;
+                      }
+                    });
+                    return sum + roundWinnings;
+                  }, 0);
 
-      {/* P2P Settlements Drawer */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4">
-        <h3 className="text-xs font-black text-zinc-400 tracking-widest uppercase flex items-center gap-2">
-          <ArrowLeftRight className="w-3.5 h-3.5 text-zinc-500" />
-          Recommended P2P Settlements
-        </h3>
-        
-        <div className="bg-zinc-950 border border-zinc-850 rounded-2xl p-4 space-y-2">
-          {settlements.length === 0 ? (
-            <p className="text-xs text-zinc-500 text-center py-2 font-medium italic">
-              No transactions needed. All net payouts equal zero.
-            </p>
-          ) : (
-            settlements.map((t, idx) => (
-              <div 
-                key={idx} 
-                className="flex items-center justify-between bg-zinc-900 border border-zinc-800/40 p-3 rounded-xl text-sm"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-zinc-200">{t.from}</span>
-                  <ChevronRight className="w-4 h-4 text-zinc-600" />
-                  <span className="font-bold text-zinc-200">{t.to}</span>
-                </div>
-                <span className="font-black text-zinc-50">
-                  ₹{t.amount.toFixed(2)}
-                </span>
-              </div>
-            ))
-          )}
+                  const isActive = activePlayers.includes(player);
+
+                  return (
+                    <div 
+                      key={player}
+                      className="flex items-center justify-between p-3 bg-zinc-950 border border-zinc-850/60 rounded-2xl"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-extrabold text-zinc-200">{player}</span>
+                          {!isActive && (
+                            <span className="text-[9px] bg-zinc-900 border border-zinc-800 text-zinc-650 font-bold px-1.5 py-0.2 rounded uppercase">
+                              Excluded
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xxs text-zinc-500 font-medium block">
+                          Total Buy-in: ₹{buyIn} | Winnings: ₹{won.toFixed(0)}
+                        </span>
+                      </div>
+
+                      <span className={`text-sm font-black ${
+                        net >= 0 ? 'text-zinc-100' : 'text-zinc-500'
+                      }`}>
+                        {net >= 0 ? '+' : ''}₹{net.toFixed(2)}
+                      </span>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* settlements */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4">
+            <h3 className="text-xs font-black text-zinc-400 tracking-widest uppercase flex items-center gap-2">
+              <ArrowLeftRight className="w-3.5 h-3.5 text-zinc-500" />
+              Recommended Settlements Matrix
+            </h3>
+            
+            <div className="bg-zinc-950 border border-zinc-850 rounded-2xl p-4 space-y-2">
+              {settlements.length === 0 ? (
+                <p className="text-xs text-zinc-500 text-center py-2 font-medium italic">
+                  No transactions required. All net payouts equal zero.
+                </p>
+              ) : (
+                settlements.map((t, idx) => (
+                  <div 
+                    key={idx} 
+                    className="flex items-center justify-between bg-zinc-900 border border-zinc-805 p-3.5 rounded-xl text-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-zinc-200">{t.from}</span>
+                      <ChevronRight className="w-4 h-4 text-zinc-600" />
+                      <span className="font-bold text-zinc-200">{t.to}</span>
+                    </div>
+                    <span className="font-black text-zinc-50">
+                      ₹{t.amount.toFixed(2)}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Lineup Management & Mid-Session Adding */}
+      {/* Lineup Management */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4">
         <div className="flex justify-between items-center">
           <h3 className="text-xs font-black text-zinc-400 tracking-widest uppercase flex items-center gap-2">
             <Users className="w-3.5 h-3.5 text-zinc-500" />
-            Manage Player Lineup
+            Manage Next Round Lineup
           </h3>
           <button 
             onClick={() => setShowAddPlayer(!showAddPlayer)}
@@ -200,17 +317,17 @@ export default function Ledger({
         </div>
       </div>
 
-      {/* Main Navigation Actions */}
+      {/* Navigation Actions */}
       <div className="flex gap-3">
         <button
           onClick={onEndSession}
-          className="flex-1 bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 hover:border-zinc-800 text-zinc-400 hover:text-zinc-200 font-semibold py-3.5 px-4 rounded-2xl transition duration-150 active:scale-95"
+          className="flex-1 bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 hover:border-zinc-800 text-zinc-400 hover:text-zinc-200 font-semibold py-4 px-4 rounded-2xl transition duration-150 active:scale-95 text-xs uppercase tracking-wider"
         >
           End Session
         </button>
         <button
           onClick={onNextRound}
-          className="flex-[2] bg-zinc-100 hover:bg-white text-zinc-950 font-black py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 transition duration-150 active:scale-95 shadow-md"
+          className="flex-[2] bg-zinc-100 hover:bg-white text-zinc-950 font-black py-4 px-4 rounded-2xl flex items-center justify-center gap-2 transition duration-150 active:scale-95 shadow-md text-xs uppercase tracking-wider"
         >
           <Sparkles className="w-4 h-4 fill-current text-zinc-950 animate-spin" style={{ animationDuration: '3s' }} />
           Start Next Round

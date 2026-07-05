@@ -18,6 +18,9 @@ export default function Board({
   const [celebrate, setCelebrate] = useState(false);
   const [claimingPrize, setClaimingPrize] = useState(null);
   const [selectedWinners, setSelectedWinners] = useState([]);
+  
+  // Interactive tooltips state
+  const [activeTooltip, setActiveTooltip] = useState(null);
 
   const announceNumber = (num) => {
     if (mute) return;
@@ -29,7 +32,7 @@ export default function Board({
         '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine'
       };
       const words = digits.map(d => digitWords[d]).join(' ');
-      const spoken = num < 10 ? `single digit ${words} ${num}` : `${words} ${num}`;
+      const spoken = num < 10 ? `single digit ${num}` : `${words} ${num}`;
 
       const utterance = new SpeechSynthesisUtterance(spoken);
       const voices = window.speechSynthesis.getVoices();
@@ -105,7 +108,11 @@ export default function Board({
   const winningNumbersMap = {};
   prizes.forEach(prize => {
     if (prize.winningNumber !== null && prize.winners && prize.winners.length > 0) {
-      winningNumbersMap[prize.winningNumber] = prize.name;
+      winningNumbersMap[prize.winningNumber] = {
+        name: prize.name,
+        winners: prize.winners,
+        value: prize.value
+      };
     }
   });
 
@@ -136,48 +143,65 @@ export default function Board({
   const totalPool = Object.values(tickets).reduce((sum, curr) => sum + (curr * ticketPrice), 0);
 
   return (
-    <div className="max-w-md mx-auto space-y-4 pb-12">
+    <div className="max-w-md mx-auto space-y-6 pb-12">
       {/* Top HUD Card */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-4 flex justify-between items-center text-zinc-100 shadow-xl">
-        <div>
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 flex justify-between items-center text-zinc-100 shadow-xl">
+        <div className="space-y-0.5">
           <span className="text-[10px] font-black text-zinc-500 tracking-wider uppercase">Active Game</span>
-          <h2 className="text-base font-black text-zinc-200">Round #{gameIndex}</h2>
+          <h2 className="text-xl font-black text-zinc-100">Round #{gameIndex}</h2>
         </div>
-        <div className="text-right">
+        <div className="text-right space-y-0.5">
           <span className="text-[10px] font-black text-zinc-500 tracking-wider uppercase">Prize Pool</span>
-          <h2 className="text-base font-black text-zinc-50">₹{totalPool}</h2>
+          <h2 className="text-xl font-black text-zinc-50">₹{totalPool}</h2>
         </div>
         <div className="flex gap-2">
           <button 
             onClick={() => setMute(!mute)} 
-            className={`p-2 rounded-xl border transition duration-150 ${mute ? 'bg-rose-950/20 border-rose-900 text-rose-400' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200'}`}
+            className={`p-2.5 rounded-xl border transition duration-150 active:scale-95 ${mute ? 'bg-rose-950/20 border-rose-900 text-rose-400' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200'}`}
           >
-            {mute ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            {mute ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
       {/* Main Board Grid (1-90) */}
-      <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-4 shadow-2xl">
-        <div className="grid grid-cols-10 gap-1.5 justify-center">
+      <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-5 shadow-2xl">
+        <div className="grid grid-cols-10 gap-2 justify-center">
           {Array.from({ length: 90 }).map((_, idx) => {
             const num = idx + 1;
             const isCalled = calledNumbers.has(num);
-            const isWinnerTrigger = winningNumbersMap[num];
+            const numInfo = winningNumbersMap[num];
 
-            let cellClass = "bg-zinc-900/10 text-zinc-600 border border-zinc-900 hover:border-zinc-800 transition-all duration-150";
-            if (isWinnerTrigger) {
-              cellClass = "bg-gradient-to-tr from-fuchsia-600 to-pink-600 text-white font-black scale-105 shadow-[0_0_15px_rgba(217,70,239,0.4)] border border-fuchsia-400 animate-pulse";
+            let cellClass = "bg-zinc-900/10 text-zinc-650 border border-zinc-900 hover:border-zinc-800 transition-all duration-150 cursor-pointer";
+            if (numInfo) {
+              cellClass = "bg-gradient-to-tr from-fuchsia-600 to-pink-650 text-white font-black scale-105 shadow-[0_0_15px_rgba(217,70,239,0.4)] border border-fuchsia-400 animate-pulse";
             } else if (isCalled) {
-              cellClass = "bg-zinc-100 text-zinc-950 font-extrabold scale-[1.02] border border-zinc-300 shadow-[0_0_15px_rgba(255,255,255,0.15)]";
+              cellClass = "bg-zinc-100 text-zinc-950 font-black scale-[1.02] border border-zinc-300 shadow-[0_0_15px_rgba(255,255,255,0.15)]";
             }
 
             return (
               <div
                 key={num}
-                className={`aspect-square flex items-center justify-center text-xs rounded-lg transition duration-150 ${cellClass}`}
+                onClick={() => numInfo && setActiveTooltip(activeTooltip === num ? null : num)}
+                onMouseEnter={() => numInfo && setActiveTooltip(num)}
+                onMouseLeave={() => setActiveTooltip(null)}
+                className="relative"
               >
-                {num}
+                <div
+                  className={`aspect-square flex items-center justify-center text-sm md:text-base font-bold rounded-lg transition duration-150 ${cellClass}`}
+                >
+                  {num}
+                </div>
+
+                {/* Popover Tooltip for claims information */}
+                {activeTooltip === num && numInfo && (
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3.5 w-40 bg-zinc-900 border border-zinc-800 rounded-2xl p-3 text-[10px] text-zinc-300 font-bold shadow-2xl z-50 text-center animate-in fade-in zoom-in-95 duration-100">
+                    <p className="text-zinc-50 font-black text-xs mb-1 border-b border-zinc-800 pb-1.5 uppercase tracking-wider">{numInfo.name}</p>
+                    <p className="mt-1 text-zinc-500 uppercase tracking-widest text-[8px]">Claimed by</p>
+                    <p className="text-zinc-100 font-black truncate text-xxs mt-0.5">{numInfo.winners.join(', ')}</p>
+                    <p className="mt-1 text-zinc-400 font-extrabold text-[9px]">Winnings: ₹{numInfo.value}</p>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -185,19 +209,19 @@ export default function Board({
       </div>
 
       {/* Controller Drawer */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl flex flex-col gap-4">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-2xl flex flex-col gap-5">
         {/* Draw Next Panel */}
-        <div className="flex gap-4 items-center bg-zinc-950 border border-zinc-850 rounded-2xl p-4">
+        <div className="flex gap-5 items-center bg-zinc-950 border border-zinc-850 rounded-2xl p-5">
           <div className="flex-1">
             <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Draws History</span>
-            <div className="flex gap-1.5 mt-1 overflow-x-auto py-0.5 max-w-[180px]">
+            <div className="flex gap-2 mt-1.5 overflow-x-auto py-0.5 max-w-[200px]">
               {history.length === 0 ? (
-                <span className="text-[10px] text-zinc-600 italic font-medium">No calls yet</span>
+                <span className="text-xxs text-zinc-600 italic font-medium">No calls yet</span>
               ) : (
                 history.slice(-4).reverse().map((num, i) => (
                   <span 
                     key={i} 
-                    className={`text-[10px] px-2.5 py-0.5 rounded-md font-bold ${
+                    className={`text-xs px-3 py-1 rounded-md font-bold ${
                       i === 0 ? 'bg-zinc-100 text-zinc-950 font-black' : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
                     }`}
                   >
@@ -206,32 +230,32 @@ export default function Board({
                 ))
               )}
             </div>
-            <div className="text-[10px] text-zinc-500 mt-2 font-bold">
-              Numbers Drawn: <span className="font-black text-zinc-300">{calledNumbers.size}/90</span>
+            <div className="text-xxs text-zinc-500 mt-2 font-bold uppercase tracking-widest">
+              Total Called: <span className="font-black text-zinc-350">{calledNumbers.size}/90</span>
             </div>
           </div>
 
-          <div className="w-16 h-16 bg-zinc-900 rounded-2xl border border-zinc-850 flex flex-col items-center justify-center shadow-inner relative overflow-hidden">
-            <span className="text-[10px] font-black text-zinc-500 uppercase leading-none">Last</span>
-            <span className="text-2xl font-black text-zinc-100 mt-0.5">
+          <div className="w-18 h-18 bg-zinc-900 rounded-2xl border border-zinc-850 flex flex-col items-center justify-center shadow-inner relative overflow-hidden">
+            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none">Last</span>
+            <span className="text-3xl font-black text-zinc-100 mt-1">
               {currentNumber || '—'}
             </span>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <button
             onClick={drawNumber}
-            className="flex-1 bg-zinc-100 hover:bg-white text-zinc-950 font-black py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition duration-150 active:scale-95 shadow-md shadow-black/30"
+            className="flex-1 bg-zinc-100 hover:bg-white text-zinc-950 font-black py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition duration-150 active:scale-95 shadow-md text-sm uppercase tracking-wider"
           >
-            <Play className="w-4 h-4 fill-current text-zinc-950" />
+            <Play className="w-5 h-5 fill-current text-zinc-950" />
             Draw Number
           </button>
           
           <button
             onClick={onEndGame}
-            className="bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 hover:border-zinc-800 text-zinc-400 hover:text-zinc-200 font-semibold py-3.5 px-4 rounded-xl transition duration-150 active:scale-95"
+            className="bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 hover:border-zinc-800 text-zinc-400 hover:text-zinc-200 font-bold py-4 px-4 rounded-xl transition duration-150 active:scale-95 text-xs uppercase tracking-wider"
           >
             End Game
           </button>
@@ -239,28 +263,28 @@ export default function Board({
       </div>
 
       {/* Prize Board */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-3">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-2xl space-y-4">
         <h3 className="text-xs font-black text-zinc-400 tracking-widest uppercase flex items-center gap-2">
-          <Trophy className="w-3.5 h-3.5 text-zinc-500" />
+          <Trophy className="w-4 h-4 text-zinc-500" />
           Prize Distribution Setup
         </h3>
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {prizes.map((p) => {
             const hasWinners = p.winners && p.winners.length > 0;
             return (
               <button
                 key={p.id}
                 onClick={() => openClaimModal(p)}
-                className={`w-full text-left p-3.5 rounded-2xl border transition duration-150 flex items-center justify-between group ${
+                className={`w-full text-left p-4 rounded-2xl border transition duration-150 flex items-center justify-between group ${
                   hasWinners 
                     ? 'bg-zinc-950/20 border-zinc-700/60' 
                     : 'bg-zinc-950 border-zinc-850 hover:border-zinc-700'
                 }`}
               >
                 <div className="space-y-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-extrabold text-zinc-200">{p.name}</span>
-                    <span className="text-[10px] font-black bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-400">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm md:text-base font-extrabold text-zinc-200">{p.name}</span>
+                    <span className="text-[10px] font-black bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded text-zinc-400">
                       ₹{p.value}
                     </span>
                   </div>
@@ -269,13 +293,13 @@ export default function Board({
                       Claimed: {p.winners.join(', ')} (on #{p.winningNumber})
                     </span>
                   ) : (
-                    <span className="text-xxs text-zinc-500 block">Tap to claim or configure winners</span>
+                    <span className="text-xxs text-zinc-500 block">Tap to configure winners</span>
                   )}
                 </div>
-                <div className={`p-1.5 rounded-lg border transition ${
+                <div className={`p-2 rounded-lg border transition ${
                   hasWinners ? 'bg-zinc-900 border-zinc-700 text-zinc-300' : 'bg-zinc-900 border-zinc-800 text-zinc-500 group-hover:text-zinc-300'
                 }`}>
-                  <Award className="w-4 h-4" />
+                  <Award className="w-4.5 h-4.5" />
                 </div>
               </button>
             );
@@ -296,9 +320,9 @@ export default function Board({
               </div>
               <button 
                 onClick={() => setClaimingPrize(null)} 
-                className="p-1.5 bg-zinc-950 border border-zinc-850 hover:bg-zinc-800 rounded-lg text-zinc-400 transition"
+                className="p-2 bg-zinc-950 border border-zinc-850 hover:bg-zinc-800 rounded-lg text-zinc-400 transition"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4.5 h-4.5" />
               </button>
             </div>
 
@@ -314,7 +338,7 @@ export default function Board({
                     <button
                       key={player}
                       onClick={() => toggleWinnerSelection(player)}
-                      className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-sm font-semibold transition ${
+                      className={`w-full flex items-center justify-between p-3 rounded-xl border text-sm font-semibold transition ${
                         isChecked 
                           ? 'bg-zinc-900 border-zinc-400 text-zinc-50' 
                           : 'bg-zinc-900/40 border-zinc-850 text-zinc-400 hover:border-zinc-800'
@@ -330,7 +354,7 @@ export default function Board({
 
             <button
               onClick={submitClaim}
-              className="w-full bg-zinc-100 hover:bg-white text-zinc-950 font-black py-3.5 rounded-xl shadow-md transition duration-150 active:scale-95"
+              className="w-full bg-zinc-100 hover:bg-white text-zinc-950 font-black py-4 rounded-xl shadow-md transition duration-150 active:scale-95 text-sm uppercase tracking-wider"
             >
               Confirm Winner Setup
             </button>

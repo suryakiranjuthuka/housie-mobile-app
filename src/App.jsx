@@ -277,7 +277,7 @@ export default function App() {
   const finalSettlements = calculateSettlements(cumulativeLedger);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between font-sans">
+    <div className="min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-950/30 via-slate-950 to-slate-950 text-slate-100 flex flex-col justify-between font-sans">
       {/* Universal header if active */}
       {sessionActive && (
         <header className="bg-slate-900/60 border-b border-slate-850 px-4 py-3 flex justify-between items-center sticky top-0 backdrop-blur-md z-30">

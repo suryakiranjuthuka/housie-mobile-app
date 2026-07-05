@@ -184,11 +184,11 @@ export default function Board({
             const isCalled = calledNumbers.has(num);
             const isWinnerTrigger = winningNumbersMap[num];
 
-            let cellClass = "bg-slate-900/40 text-slate-500 hover:text-slate-400 border border-slate-900/60";
+            let cellClass = "bg-slate-905/30 text-slate-600 border border-slate-900 hover:border-slate-800 transition-all";
             if (isWinnerTrigger) {
-              cellClass = "bg-fuchsia-600 text-white font-black scale-105 shadow-lg shadow-fuchsia-950/40 border border-fuchsia-400 animate-pulse";
+              cellClass = "bg-gradient-to-tr from-fuchsia-600 to-pink-600 text-white font-black scale-105 shadow-[0_0_20px_2px_rgba(217,70,239,0.4)] border border-fuchsia-400 animate-pulse";
             } else if (isCalled) {
-              cellClass = "bg-emerald-600/90 text-white font-bold border border-emerald-500 shadow-md shadow-emerald-950/20";
+              cellClass = "bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-bold scale-[1.02] border border-emerald-400 shadow-[0_0_15px_1px_rgba(16,185,129,0.3)]";
             }
 
             return (

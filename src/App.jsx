@@ -411,15 +411,15 @@ export default function App() {
                     }, 0);
 
                     return (
-                      <div key={player} className="flex justify-between items-center p-3 bg-zinc-950 border border-zinc-850/60 rounded-xl">
+                      <div key={player} className="flex justify-between items-center p-3.5 bg-zinc-950 border border-zinc-850/60 rounded-xl">
                         <div>
-                          <span className="text-sm font-extrabold text-zinc-200 block">{player}</span>
-                          <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">
+                          <span className="text-base font-extrabold text-zinc-200 block">{player}</span>
+                          <span className="text-xs text-zinc-500 font-semibold mt-0.5 block">
                             Total Buy-in: ₹{buyIn} | Winnings: ₹{won.toFixed(0)}
                           </span>
                         </div>
-                        <span className={`text-sm font-black ${net >= 0 ? 'text-zinc-100' : 'text-zinc-500'}`}>
-                          {net >= 0 ? '+' : ''}₹{net.toFixed(2)}
+                        <span className={`text-base font-black ${net > 0 ? 'text-emerald-450' : net < 0 ? 'text-rose-450' : 'text-zinc-500'}`}>
+                          {net > 0 ? '+' : ''}₹{net.toFixed(2)}
                         </span>
                       </div>
                     );
@@ -434,20 +434,20 @@ export default function App() {
                 Recommended Settlements
               </h3>
               
-              <div className="bg-zinc-950 border border-zinc-850 rounded-2xl p-4 space-y-2">
+              <div className="bg-zinc-950 border border-zinc-850 rounded-2xl p-4 space-y-2.5">
                 {finalSettlements.length === 0 ? (
                   <p className="text-xs text-zinc-500 italic text-center py-2 font-medium">
                     No transactions required. All net payouts equal zero.
                   </p>
                 ) : (
                   finalSettlements.map((t, idx) => (
-                    <div key={idx} className="flex items-center justify-between bg-zinc-900 border border-zinc-800/80 p-3.5 rounded-xl">
+                    <div key={idx} className="flex items-center justify-between bg-zinc-900 border border-zinc-800/80 p-4 rounded-xl">
                       <div className="flex items-center gap-2 text-sm">
-                        <span className="font-bold text-zinc-200">{t.from}</span>
-                        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest px-1 py-0.5 bg-zinc-950 border border-zinc-850 rounded">PAYS</span>
-                        <span className="font-bold text-zinc-200">{t.to}</span>
+                        <span className="font-extrabold text-zinc-200 text-sm">{t.from}</span>
+                        <ChevronRight className="w-4.5 h-4.5 text-rose-400 animate-pulse" />
+                        <span className="font-extrabold text-zinc-200 text-sm">{t.to}</span>
                       </div>
-                      <span className="font-black text-zinc-50 text-sm">
+                      <span className="font-black text-emerald-450 text-base">
                         ₹{t.amount.toFixed(2)}
                       </span>
                     </div>

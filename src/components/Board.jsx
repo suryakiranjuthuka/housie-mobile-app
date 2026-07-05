@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Volume2, VolumeX, RefreshCw, Trophy, AlertTriangle, ArrowRight, Play, Award, CheckSquare, X } from 'lucide-react';
+import { Volume2, VolumeX, Trophy, Play, Award, CheckSquare, X } from 'lucide-react';
 import Confetti from './Confetti';
 
 export default function Board({ 
@@ -14,45 +14,11 @@ export default function Board({
   const [calledNumbers, setCalledNumbers] = useState(new Set());
   const [history, setHistory] = useState([]);
   const [currentNumber, setCurrentNumber] = useState(null);
-  
-  // Audio state
   const [mute, setMute] = useState(false);
-  
-  // Confetti triggering state
   const [celebrate, setCelebrate] = useState(false);
-
-  // Smart claim overlay
-  const [claimingPrize, setClaimingPrize] = useState(null); // holds the prize object being claimed
+  const [claimingPrize, setClaimingPrize] = useState(null);
   const [selectedWinners, setSelectedWinners] = useState([]);
 
-  const getIndianFemaleVoice = (voices) => {
-    let ideal = voices.find(v => 
-      v.lang.replace('_', '-').toLowerCase().startsWith('en-in') && 
-      (v.name.toLowerCase().includes('female') || 
-       v.name.toLowerCase().includes('raveena') || 
-       v.name.toLowerCase().includes('isha') || 
-       v.name.toLowerCase().includes('veena') || 
-       v.name.toLowerCase().includes('kanya') || 
-       v.name.toLowerCase().includes('tara') || 
-       v.name.toLowerCase().includes('heera') || 
-       v.name.toLowerCase().includes('priya') || 
-       v.name.toLowerCase().includes('neerja') || 
-       !v.name.toLowerCase().includes('male'))
-    );
-    
-    if (!ideal) {
-      ideal = voices.find(v => v.lang.replace('_', '-').toLowerCase().startsWith('en-in'));
-    }
-    if (!ideal) {
-      ideal = voices.find(v => v.lang.replace('_', '-').toLowerCase().startsWith('hi-in'));
-    }
-    if (!ideal) {
-      ideal = voices.find(v => v.name.toLowerCase().includes('female') && v.lang.toLowerCase().startsWith('en'));
-    }
-    return ideal;
-  };
-
-  // Setup standard voice announcements
   const announceNumber = (num) => {
     if (mute) return;
     try {
@@ -89,7 +55,26 @@ export default function Board({
     } catch (e) {}
   };
 
-  // Pre-load voices
+  const getIndianFemaleVoice = (voices) => {
+    let ideal = voices.find(v => 
+      v.lang.replace('_', '-').toLowerCase().startsWith('en-in') && 
+      (v.name.toLowerCase().includes('female') || 
+       v.name.toLowerCase().includes('raveena') || 
+       v.name.toLowerCase().includes('isha') || 
+       v.name.toLowerCase().includes('veena') || 
+       v.name.toLowerCase().includes('kanya') || 
+       v.name.toLowerCase().includes('tara') || 
+       v.name.toLowerCase().includes('heera') || 
+       v.name.toLowerCase().includes('priya') || 
+       v.name.toLowerCase().includes('neerja') || 
+       !v.name.toLowerCase().includes('male'))
+    );
+    if (!ideal) ideal = voices.find(v => v.lang.replace('_', '-').toLowerCase().startsWith('en-in'));
+    if (!ideal) ideal = voices.find(v => v.lang.replace('_', '-').toLowerCase().startsWith('hi-in'));
+    if (!ideal) ideal = voices.find(v => v.name.toLowerCase().includes('female') && v.lang.toLowerCase().startsWith('en'));
+    return ideal;
+  };
+
   useEffect(() => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.getVoices();
@@ -117,7 +102,6 @@ export default function Board({
     announceNumber(num);
   };
 
-  // Mapping of winning numbers to highlight them on the grid
   const winningNumbersMap = {};
   prizes.forEach(prize => {
     if (prize.winningNumber !== null && prize.winners && prize.winners.length > 0) {
@@ -140,15 +124,12 @@ export default function Board({
 
   const submitClaim = () => {
     if (!claimingPrize) return;
-    
     onClaimPrize(claimingPrize.id, selectedWinners, selectedWinners.length > 0 ? currentNumber : null);
-    
     if (selectedWinners.length > 0) {
       announceClaim(claimingPrize.name, selectedWinners.join(' and '));
       setCelebrate(true);
       setTimeout(() => setCelebrate(false), 4500);
     }
-    
     setClaimingPrize(null);
   };
 
@@ -157,44 +138,44 @@ export default function Board({
   return (
     <div className="max-w-md mx-auto space-y-4 pb-12">
       {/* Top HUD Card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 flex justify-between items-center text-slate-100 shadow-xl">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-4 flex justify-between items-center text-zinc-100 shadow-xl">
         <div>
-          <span className="text-xxs font-extrabold text-violet-400 tracking-wider uppercase">Active Game</span>
-          <h2 className="text-lg font-black text-slate-200">Round #{gameIndex}</h2>
+          <span className="text-[10px] font-black text-zinc-500 tracking-wider uppercase">Active Game</span>
+          <h2 className="text-base font-black text-zinc-200">Round #{gameIndex}</h2>
         </div>
         <div className="text-right">
-          <span className="text-xxs font-extrabold text-slate-400 tracking-wider uppercase">Prize Pool</span>
-          <h2 className="text-lg font-black text-emerald-400">₹{totalPool}</h2>
+          <span className="text-[10px] font-black text-zinc-500 tracking-wider uppercase">Prize Pool</span>
+          <h2 className="text-base font-black text-zinc-50">₹{totalPool}</h2>
         </div>
         <div className="flex gap-2">
           <button 
             onClick={() => setMute(!mute)} 
-            className={`p-2 rounded-xl border transition ${mute ? 'bg-rose-950/20 border-rose-900 text-rose-400' : 'bg-slate-950 border-slate-800 text-slate-400'}`}
+            className={`p-2 rounded-xl border transition duration-150 ${mute ? 'bg-rose-950/20 border-rose-900 text-rose-400' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200'}`}
           >
-            {mute ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+            {mute ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
         </div>
       </div>
 
       {/* Main Board Grid (1-90) */}
-      <div className="bg-slate-950 border border-slate-850 rounded-3xl p-4 shadow-2xl">
+      <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-4 shadow-2xl">
         <div className="grid grid-cols-10 gap-1.5 justify-center">
           {Array.from({ length: 90 }).map((_, idx) => {
             const num = idx + 1;
             const isCalled = calledNumbers.has(num);
             const isWinnerTrigger = winningNumbersMap[num];
 
-            let cellClass = "bg-slate-905/30 text-slate-600 border border-slate-900 hover:border-slate-800 transition-all";
+            let cellClass = "bg-zinc-900/10 text-zinc-600 border border-zinc-900 hover:border-zinc-800 transition-all duration-150";
             if (isWinnerTrigger) {
-              cellClass = "bg-gradient-to-tr from-fuchsia-600 to-pink-600 text-white font-black scale-105 shadow-[0_0_20px_2px_rgba(217,70,239,0.4)] border border-fuchsia-400 animate-pulse";
+              cellClass = "bg-gradient-to-tr from-fuchsia-600 to-pink-600 text-white font-black scale-105 shadow-[0_0_15px_rgba(217,70,239,0.4)] border border-fuchsia-400 animate-pulse";
             } else if (isCalled) {
-              cellClass = "bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-bold scale-[1.02] border border-emerald-400 shadow-[0_0_15px_1px_rgba(16,185,129,0.3)]";
+              cellClass = "bg-zinc-100 text-zinc-950 font-extrabold scale-[1.02] border border-zinc-300 shadow-[0_0_15px_rgba(255,255,255,0.15)]";
             }
 
             return (
               <div
                 key={num}
-                className={`aspect-square flex items-center justify-center text-xs rounded-lg transition duration-200 ${cellClass}`}
+                className={`aspect-square flex items-center justify-center text-xs rounded-lg transition duration-150 ${cellClass}`}
               >
                 {num}
               </div>
@@ -204,20 +185,20 @@ export default function Board({
       </div>
 
       {/* Controller Drawer */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl flex flex-col gap-4">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl flex flex-col gap-4">
         {/* Draw Next Panel */}
-        <div className="flex gap-4 items-center bg-slate-950 border border-slate-850 rounded-2xl p-4">
+        <div className="flex gap-4 items-center bg-zinc-950 border border-zinc-850 rounded-2xl p-4">
           <div className="flex-1">
-            <span className="text-xxs font-extrabold text-slate-400 uppercase tracking-widest">Draws History</span>
+            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Draws History</span>
             <div className="flex gap-1.5 mt-1 overflow-x-auto py-0.5 max-w-[180px]">
               {history.length === 0 ? (
-                <span className="text-xxs text-slate-600 italic">No calls yet</span>
+                <span className="text-[10px] text-zinc-600 italic font-medium">No calls yet</span>
               ) : (
                 history.slice(-4).reverse().map((num, i) => (
                   <span 
                     key={i} 
-                    className={`text-xxs px-2 py-0.5 rounded-md font-bold ${
-                      i === 0 ? 'bg-emerald-950/50 text-emerald-400 border border-emerald-900' : 'bg-slate-900 text-slate-400'
+                    className={`text-[10px] px-2.5 py-0.5 rounded-md font-bold ${
+                      i === 0 ? 'bg-zinc-100 text-zinc-950 font-black' : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
                     }`}
                   >
                     {num}
@@ -225,15 +206,14 @@ export default function Board({
                 ))
               )}
             </div>
-            <div className="text-xxs text-slate-500 mt-2 font-medium">
-              Numbers Drawn: <span className="font-extrabold text-slate-300">{calledNumbers.size}/90</span>
+            <div className="text-[10px] text-zinc-500 mt-2 font-bold">
+              Numbers Drawn: <span className="font-black text-zinc-300">{calledNumbers.size}/90</span>
             </div>
           </div>
 
-          <div className="w-16 h-16 bg-slate-900 rounded-2xl border border-slate-850 flex flex-col items-center justify-center shadow-inner relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-tr from-violet-500/5 to-transparent pointer-events-none" />
-            <span className="text-xxs font-black text-slate-500 uppercase leading-none">Last</span>
-            <span className="text-2xl font-black text-violet-300 mt-0.5">
+          <div className="w-16 h-16 bg-zinc-900 rounded-2xl border border-zinc-850 flex flex-col items-center justify-center shadow-inner relative overflow-hidden">
+            <span className="text-[10px] font-black text-zinc-500 uppercase leading-none">Last</span>
+            <span className="text-2xl font-black text-zinc-100 mt-0.5">
               {currentNumber || '—'}
             </span>
           </div>
@@ -243,15 +223,15 @@ export default function Board({
         <div className="flex gap-2">
           <button
             onClick={drawNumber}
-            className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 active:scale-[0.98] text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-violet-950/60 transition"
+            className="flex-1 bg-zinc-100 hover:bg-white text-zinc-950 font-black py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition duration-150 active:scale-95 shadow-md shadow-black/30"
           >
-            <Play className="w-5 h-5 fill-current" />
-            Draw Next Number
+            <Play className="w-4 h-4 fill-current text-zinc-950" />
+            Draw Number
           </button>
           
           <button
             onClick={onEndGame}
-            className="bg-slate-950 border border-slate-850 hover:bg-slate-900 hover:border-slate-800 text-slate-400 font-semibold py-3.5 px-4 rounded-xl transition flex items-center justify-center"
+            className="bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 hover:border-zinc-800 text-zinc-400 hover:text-zinc-200 font-semibold py-3.5 px-4 rounded-xl transition duration-150 active:scale-95"
           >
             End Game
           </button>
@@ -259,9 +239,9 @@ export default function Board({
       </div>
 
       {/* Prize Board */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3">
-        <h3 className="text-xs font-extrabold text-slate-400 tracking-widest uppercase flex items-center gap-2">
-          <Trophy className="w-4 h-4 text-violet-400" />
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-3">
+        <h3 className="text-xs font-black text-zinc-400 tracking-widest uppercase flex items-center gap-2">
+          <Trophy className="w-3.5 h-3.5 text-zinc-500" />
           Prize Distribution Setup
         </h3>
         <div className="space-y-2">
@@ -271,29 +251,29 @@ export default function Board({
               <button
                 key={p.id}
                 onClick={() => openClaimModal(p)}
-                className={`w-full text-left p-3.5 rounded-2xl border transition flex items-center justify-between group ${
+                className={`w-full text-left p-3.5 rounded-2xl border transition duration-150 flex items-center justify-between group ${
                   hasWinners 
-                    ? 'bg-emerald-950/10 border-emerald-900/50 hover:border-emerald-700/60' 
-                    : 'bg-slate-950 border-slate-850 hover:border-slate-700'
+                    ? 'bg-zinc-950/20 border-zinc-700/60' 
+                    : 'bg-zinc-950 border-zinc-850 hover:border-zinc-700'
                 }`}
               >
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-extrabold text-slate-200">{p.name}</span>
-                    <span className="text-xxs font-black bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded text-slate-400">
+                    <span className="text-sm font-extrabold text-zinc-200">{p.name}</span>
+                    <span className="text-[10px] font-black bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-400">
                       ₹{p.value}
                     </span>
                   </div>
                   {hasWinners ? (
-                    <span className="text-xxs text-emerald-400 font-bold block">
+                    <span className="text-xxs text-zinc-400 font-bold block">
                       Claimed: {p.winners.join(', ')} (on #{p.winningNumber})
                     </span>
                   ) : (
-                    <span className="text-xxs text-slate-500 block">Tap to claim or set winners</span>
+                    <span className="text-xxs text-zinc-500 block">Tap to claim or configure winners</span>
                   )}
                 </div>
                 <div className={`p-1.5 rounded-lg border transition ${
-                  hasWinners ? 'bg-emerald-950 border-emerald-800 text-emerald-400' : 'bg-slate-900 border-slate-800 text-slate-400 group-hover:text-slate-200'
+                  hasWinners ? 'bg-zinc-900 border-zinc-700 text-zinc-300' : 'bg-zinc-900 border-zinc-800 text-zinc-500 group-hover:text-zinc-300'
                 }`}>
                   <Award className="w-4 h-4" />
                 </div>
@@ -303,32 +283,31 @@ export default function Board({
         </div>
       </div>
 
-      {/* Confetti Animation Trigger */}
       <Confetti active={celebrate} />
 
       {/* Smart Bottom-Sheet Claim Modal */}
       {claimingPrize && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-40 flex items-end justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-4 animate-in slide-in-from-bottom duration-300">
+        <div className="fixed inset-0 bg-zinc-950/80 backdrop-blur-md z-40 flex items-end justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-4">
             <div className="flex justify-between items-center">
               <div>
-                <span className="text-xxs font-bold text-slate-400 uppercase tracking-widest">Award Prize</span>
-                <h3 className="text-lg font-black text-slate-100">{claimingPrize.name}</h3>
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Award Prize</span>
+                <h3 className="text-base font-black text-zinc-100">{claimingPrize.name}</h3>
               </div>
               <button 
                 onClick={() => setClaimingPrize(null)} 
-                className="p-1.5 bg-slate-950 border border-slate-850 hover:bg-slate-800 rounded-lg text-slate-400 transition"
+                className="p-1.5 bg-zinc-950 border border-zinc-850 hover:bg-zinc-800 rounded-lg text-zinc-400 transition"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-1.5">
-              <p className="text-xxs text-slate-400 mb-2 font-medium">
-                Select one or more winning players. Uncheck all to mark as unclaimed.
+              <p className="text-xxs text-zinc-500 mb-2 font-medium">
+                Select winning players. Uncheck all to clear.
               </p>
               
-              <div className="bg-slate-950 border border-slate-850 rounded-2xl p-3 max-h-48 overflow-y-auto space-y-1.5">
+              <div className="bg-zinc-950 border border-zinc-850 rounded-2xl p-3 max-h-48 overflow-y-auto space-y-1.5">
                 {activePlayers.map((player) => {
                   const isChecked = selectedWinners.includes(player);
                   return (
@@ -337,12 +316,12 @@ export default function Board({
                       onClick={() => toggleWinnerSelection(player)}
                       className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-sm font-semibold transition ${
                         isChecked 
-                          ? 'bg-violet-950/20 border-violet-500/50 text-violet-300' 
-                          : 'bg-slate-900 border-slate-850/40 hover:border-slate-800 text-slate-400'
+                          ? 'bg-zinc-900 border-zinc-400 text-zinc-50' 
+                          : 'bg-zinc-900/40 border-zinc-850 text-zinc-400 hover:border-zinc-800'
                       }`}
                     >
                       <span>{player}</span>
-                      <CheckSquare className={`w-4 h-4 transition ${isChecked ? 'text-violet-400 opacity-100' : 'opacity-20'}`} />
+                      <CheckSquare className={`w-4 h-4 transition ${isChecked ? 'text-zinc-50 opacity-100' : 'opacity-10'}`} />
                     </button>
                   );
                 })}
@@ -351,9 +330,9 @@ export default function Board({
 
             <button
               onClick={submitClaim}
-              className="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-violet-950/40 transition"
+              className="w-full bg-zinc-100 hover:bg-white text-zinc-950 font-black py-3.5 rounded-xl shadow-md transition duration-150 active:scale-95"
             >
-              Confirm Award Configuration
+              Confirm Winner Setup
             </button>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeftRight, Users, Trophy, ChevronRight, Ban, Award, Plus, Sparkles } from 'lucide-react';
+import { ArrowLeftRight, Users, ChevronRight, Ban, Plus, Sparkles } from 'lucide-react';
 import { calculateSettlements } from '../utils/settlement';
 
 export default function Ledger({ 
@@ -17,17 +17,13 @@ export default function Ledger({
   const [showAddPlayer, setShowAddPlayer] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState('');
 
-  // Calculate live settlements based on cumulative balances
   const settlements = calculateSettlements(cumulativeLedger);
 
-  // Toggle players exclusion mid-session
   const togglePlayerExclusion = (player) => {
     let updated;
     if (activePlayers.includes(player)) {
-      // Exclude player
       updated = activePlayers.filter(p => p !== player);
     } else {
-      // Include player
       updated = [...activePlayers, player];
     }
     
@@ -54,13 +50,13 @@ export default function Ledger({
   return (
     <div className="max-w-md mx-auto space-y-5 pb-12">
       {/* Session Standings Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-4 text-slate-100">
-        <div className="flex justify-between items-center border-b border-slate-800/80 pb-3">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4 text-zinc-100">
+        <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
           <div>
-            <span className="text-xxs font-extrabold text-violet-400 tracking-wider uppercase">Leaderboard</span>
-            <h2 className="text-lg font-black">Current Standings</h2>
+            <span className="text-[10px] font-black text-zinc-500 tracking-wider uppercase">Leaderboard</span>
+            <h2 className="text-base font-black">Current Standings</h2>
           </div>
-          <span className="text-xxs font-extrabold bg-slate-950 border border-slate-850 px-2 py-1 rounded-lg text-slate-400">
+          <span className="text-[10px] font-black bg-zinc-950 border border-zinc-850 px-2 py-1 rounded-lg text-zinc-400">
             {games.length} Games Played
           </span>
         </div>
@@ -85,24 +81,24 @@ export default function Ledger({
               return (
                 <div 
                   key={player}
-                  className="flex items-center justify-between p-3 bg-slate-950 border border-slate-850/60 rounded-2xl transition"
+                  className="flex items-center justify-between p-3 bg-zinc-950 border border-zinc-850/60 rounded-2xl transition"
                 >
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-extrabold text-slate-200">{player}</span>
+                      <span className="text-sm font-extrabold text-zinc-200">{player}</span>
                       {!isActive && (
-                        <span className="text-xxs bg-slate-900 border border-slate-850 text-slate-500 font-semibold px-1.5 py-0.2 rounded">
-                          Spectator
+                        <span className="text-[9px] bg-zinc-900 border border-zinc-800 text-zinc-500 font-bold px-1.5 py-0.2 rounded uppercase tracking-wider">
+                          Spectating
                         </span>
                       )}
                     </div>
-                    <span className="text-xxs text-slate-500 font-medium block">
+                    <span className="text-xxs text-zinc-500 font-medium block">
                       Buy-in: ₹{buyIn} | Won: ₹{won.toFixed(0)}
                     </span>
                   </div>
 
                   <span className={`text-sm font-black ${
-                    net >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                    net >= 0 ? 'text-zinc-100' : 'text-zinc-500'
                   }`}>
                     {net >= 0 ? '+' : ''}₹{net.toFixed(2)}
                   </span>
@@ -113,29 +109,29 @@ export default function Ledger({
       </div>
 
       {/* P2P Settlements Drawer */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-4">
-        <h3 className="text-xs font-extrabold text-slate-400 tracking-widest uppercase flex items-center gap-2">
-          <ArrowLeftRight className="w-4 h-4 text-violet-400" />
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4">
+        <h3 className="text-xs font-black text-zinc-400 tracking-widest uppercase flex items-center gap-2">
+          <ArrowLeftRight className="w-3.5 h-3.5 text-zinc-500" />
           Recommended P2P Settlements
         </h3>
         
-        <div className="bg-slate-950 border border-slate-850 rounded-2xl p-4 space-y-3">
+        <div className="bg-zinc-950 border border-zinc-850 rounded-2xl p-4 space-y-2">
           {settlements.length === 0 ? (
-            <p className="text-xs text-slate-500 text-center py-2 font-medium italic">
-              All balances match up perfectly. No transactions needed!
+            <p className="text-xs text-zinc-500 text-center py-2 font-medium italic">
+              No transactions needed. All net payouts equal zero.
             </p>
           ) : (
             settlements.map((t, idx) => (
               <div 
                 key={idx} 
-                className="flex items-center justify-between bg-slate-900/60 border border-slate-800/40 p-3 rounded-xl text-sm"
+                className="flex items-center justify-between bg-zinc-900 border border-zinc-800/40 p-3 rounded-xl text-sm"
               >
                 <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-slate-300">{t.from}</span>
-                  <ChevronRight className="w-4 h-4 text-slate-600" />
-                  <span className="font-extrabold text-slate-300">{t.to}</span>
+                  <span className="font-bold text-zinc-200">{t.from}</span>
+                  <ChevronRight className="w-4 h-4 text-zinc-600" />
+                  <span className="font-bold text-zinc-200">{t.to}</span>
                 </div>
-                <span className="font-black text-emerald-400">
+                <span className="font-black text-zinc-50">
                   ₹{t.amount.toFixed(2)}
                 </span>
               </div>
@@ -145,15 +141,15 @@ export default function Ledger({
       </div>
 
       {/* Lineup Management & Mid-Session Adding */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-4">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-xs font-extrabold text-slate-400 tracking-widest uppercase flex items-center gap-2">
-            <Users className="w-4 h-4 text-violet-400" />
+          <h3 className="text-xs font-black text-zinc-400 tracking-widest uppercase flex items-center gap-2">
+            <Users className="w-3.5 h-3.5 text-zinc-500" />
             Manage Player Lineup
           </h3>
           <button 
             onClick={() => setShowAddPlayer(!showAddPlayer)}
-            className="text-xxs font-bold text-violet-400 hover:text-violet-300 transition flex items-center gap-1"
+            className="text-[10px] font-black text-zinc-400 hover:text-zinc-200 transition duration-150 flex items-center gap-1 uppercase tracking-wider"
           >
             <Plus className="w-3.5 h-3.5" />
             Add Player
@@ -161,26 +157,26 @@ export default function Ledger({
         </div>
 
         {showAddPlayer && (
-          <div className="flex gap-2 bg-slate-950 border border-slate-850 rounded-xl p-2.5">
+          <div className="flex gap-2 bg-zinc-950 border border-zinc-850 rounded-xl p-2.5">
             <input 
               type="text" 
               value={newPlayerName}
               onChange={(e) => setNewPlayerName(e.target.value)}
-              placeholder="Player name..."
-              className="flex-1 bg-slate-900 border border-slate-800 focus:border-violet-500 rounded-lg px-3 py-1.5 text-xs text-slate-200 outline-none"
+              placeholder="Name..."
+              className="flex-1 bg-zinc-900 border border-zinc-800 focus:border-zinc-500 rounded-lg px-3 py-1.5 text-xs text-zinc-200 outline-none"
             />
             <button 
               onClick={handleAddPlayer}
-              className="bg-violet-600 text-white rounded-lg px-3 py-1.5 text-xs font-bold transition hover:bg-violet-500"
+              className="bg-zinc-100 text-zinc-950 rounded-lg px-3 py-1.5 text-xs font-bold transition hover:bg-white"
             >
               Add
             </button>
           </div>
         )}
 
-        <div className="bg-slate-950 border border-slate-850 rounded-2xl p-4">
-          <p className="text-xxs text-slate-500 mb-3 font-semibold uppercase tracking-wider">
-            Toggle checked players to EXCLUDE/INCLUDE them for the next round
+        <div className="bg-zinc-950 border border-zinc-850 rounded-2xl p-4">
+          <p className="text-[10px] text-zinc-500 mb-3 font-bold uppercase tracking-widest">
+            Exclusions (Check/Uncheck players for the next round)
           </p>
           <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1">
             {players.map((p) => {
@@ -189,13 +185,13 @@ export default function Ledger({
                 <button
                   key={p}
                   onClick={() => togglePlayerExclusion(p)}
-                  className={`px-3 py-1.5 rounded-xl border text-xxs font-bold transition flex items-center gap-1.5 ${
+                  className={`px-3 py-1.5 rounded-xl border text-[10px] font-bold transition flex items-center gap-1.5 ${
                     isActive 
-                      ? 'bg-violet-950/20 border-violet-500 text-violet-300 shadow-sm' 
-                      : 'bg-slate-900 border-slate-850 text-slate-500 hover:border-slate-800'
+                      ? 'bg-zinc-900 border-zinc-500 text-zinc-100 shadow-sm' 
+                      : 'bg-zinc-900/40 border-zinc-850 text-zinc-500 hover:border-zinc-800'
                   }`}
                 >
-                  <Ban className={`w-3.5 h-3.5 ${isActive ? 'opacity-20' : 'text-rose-500 opacity-100'}`} />
+                  <Ban className={`w-3 h-3 ${isActive ? 'opacity-20' : 'text-rose-500 opacity-100'}`} />
                   {p}
                 </button>
               );
@@ -208,15 +204,15 @@ export default function Ledger({
       <div className="flex gap-3">
         <button
           onClick={onEndSession}
-          className="flex-1 bg-slate-950 border border-slate-850 hover:bg-rose-950/20 hover:border-rose-900 hover:text-rose-400 text-slate-400 font-semibold py-3.5 px-4 rounded-2xl transition"
+          className="flex-1 bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 hover:border-zinc-800 text-zinc-400 hover:text-zinc-200 font-semibold py-3.5 px-4 rounded-2xl transition duration-150 active:scale-95"
         >
           End Session
         </button>
         <button
           onClick={onNextRound}
-          className="flex-[2] bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.98] text-white font-bold py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/60 transition"
+          className="flex-[2] bg-zinc-100 hover:bg-white text-zinc-950 font-black py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 transition duration-150 active:scale-95 shadow-md"
         >
-          <Sparkles className="w-5 h-5 fill-current animate-spin" style={{ animationDuration: '3s' }} />
+          <Sparkles className="w-4 h-4 fill-current text-zinc-950 animate-spin" style={{ animationDuration: '3s' }} />
           Start Next Round
         </button>
       </div>

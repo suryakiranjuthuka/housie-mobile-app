@@ -399,7 +399,7 @@ export default function Board({
                 Select winning players. Uncheck all to clear.
               </p>
               
-              <div className="bg-black/40 border border-white/10 rounded-3xl p-4 max-h-56 overflow-y-auto space-y-2 shadow-inner">
+              <div className="bg-black/40 border border-white/10 rounded-3xl p-4 max-h-[60vh] overflow-y-auto space-y-2 shadow-inner">
                 {activePlayers.map((player) => {
                   const isChecked = selectedWinners.includes(player);
                   return (

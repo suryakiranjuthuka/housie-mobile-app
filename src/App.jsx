@@ -295,7 +295,7 @@ export default function App() {
       </div>
 
       {/* Main Container - Z-index elevates it above auroras */}
-      <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-6 z-10 relative">
+      <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-6 z-20 relative">
         {/* Inline Navigation Card - Aurora Glass Style */}
         {sessionActive && appMode !== 'final' && (
           <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-3 flex justify-between items-center shadow-2xl">
@@ -508,7 +508,7 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="text-center py-6 bg-black/40 backdrop-blur-xl border-t border-white/5 relative z-10">
+      <footer className="text-center py-6 bg-black/40 backdrop-blur-xl border-t border-white/5 relative z-0">
         <p className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase">
           Housy CLI to Mobile Engine • 2026
         </p>

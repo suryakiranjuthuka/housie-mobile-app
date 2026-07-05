@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Setup from './components/Setup';
 import Board from './components/Board';
 import Ledger from './components/Ledger';
-import { Award, ArrowLeftRight, Check, X, ShieldAlert, Sparkles, LogOut } from 'lucide-react';
+import { Award, ArrowLeftRight, Check, X, ShieldAlert, Sparkles, LogOut, ChevronRight } from 'lucide-react';
 import { calculateSettlements, getRoundedDistribution } from './utils/settlement';
 
 export default function App() {
@@ -12,7 +12,7 @@ export default function App() {
   const [activePlayers, setActivePlayers] = useState([]);
   const [games, setGames] = useState([]);
   const [cumulativeLedger, setCumulativeLedger] = useState({});
-  const [appMode, setAppMode] = useState('setup'); // 'setup' | 'board' | 'ledger' | 'final'
+  const [appMode, setAppMode] = useState('setup'); // 'setup' | 'board' | 'ledger' | 'final' | 'round-setup-prompt' | 'round-setup-custom'
   const [savedPlayers, setSavedPlayers] = useState([]);
 
   // Game specific configs for the active game
@@ -70,84 +70,91 @@ export default function App() {
   const handleSetupComplete = (setupData) => {
     setTicketPrice(setupData.ticketPrice);
     setPlayers(setupData.players);
-    setActivePlayers(setupData.players);
+    setActivePlayers(setupData.players); // all players active initially
     setCurrentTickets(setupData.tickets);
     setCurrentPrizes(setupData.prizes);
     setGameIndex(1);
-    setAppMode('board');
-    setSessionActive(true);
-
+    
+    // Save to known players dictionary
+    const newSaved = Array.from(new Set([...savedPlayers, ...setupData.players])).sort();
+    setSavedPlayers(newSaved);
+    localStorage.setItem('housie_players', JSON.stringify(newSaved));
+    
     // Initialize cumulative ledger
-    const initialLedger = {};
-    setupData.players.forEach(p => {
-      initialLedger[p] = 0;
-    });
-    setCumulativeLedger(initialLedger);
+    const ledger = {};
+    setupData.players.forEach(p => ledger[p] = 0);
+    setCumulativeLedger(ledger);
+    
+    setSessionActive(true);
+    setAppMode('board');
+  };
 
-    // Save players globally
-    const updatedSaved = Array.from(new Set([...savedPlayers, ...setupData.players]));
+  const handleDeleteSavedPlayer = (playerToDelete) => {
+    const updatedSaved = savedPlayers.filter(p => p !== playerToDelete);
     setSavedPlayers(updatedSaved);
     localStorage.setItem('housie_players', JSON.stringify(updatedSaved));
   };
 
   const handleClaimPrize = (prizeId, winners, winningNumber) => {
-    const updatedPrizes = currentPrizes.map(p => {
-      if (p.id === prizeId) {
-        return { ...p, winners, winningNumber };
-      }
-      return p;
-    });
-    setCurrentPrizes(updatedPrizes);
+    setCurrentPrizes(prevPrizes => 
+      prevPrizes.map(p => 
+        p.id === prizeId ? { ...p, winners, winningNumber } : p
+      )
+    );
   };
 
   const handleEndGame = () => {
-    if (!window.confirm("Are you sure you want to end this game round and see standings?")) return;
+    const totalBuyIn = Object.values(currentTickets).reduce((sum, count) => sum + count * ticketPrice, 0);
+    const completedGame = {
+      gameIndex,
+      activePlayers,
+      tickets: currentTickets,
+      prizes: currentPrizes,
+      totalBuyIn
+    };
 
-    // Calculate this game's ledger changes
+    const newGames = [...games, completedGame];
+    setGames(newGames);
+
+    // Update cumulative ledger
     const newLedger = { ...cumulativeLedger };
+    activePlayers.forEach(p => {
+      // Subtract buy-in
+      const buyIn = (currentTickets[p] || 0) * ticketPrice;
+      newLedger[p] -= buyIn;
+    });
 
-    players.forEach(player => {
-      const isPlayerActive = activePlayers.includes(player);
-      const buyIn = isPlayerActive ? (currentTickets[player] || 0) * ticketPrice : 0;
-      
-      // Calculate winnings
-      let winnings = 0;
-      currentPrizes.forEach(prize => {
-        if (prize.winners.includes(player)) {
-          winnings += prize.value / prize.winners.length;
-        }
-      });
-
-      const net = winnings - buyIn;
-      newLedger[player] = (newLedger[player] || 0) + net;
+    currentPrizes.forEach(p => {
+      if (p.winners && p.winners.length > 0) {
+        const splitAmount = p.value / p.winners.length;
+        p.winners.forEach(winner => {
+          if (newLedger[winner] !== undefined) {
+            newLedger[winner] += splitAmount;
+          }
+        });
+      }
     });
 
     setCumulativeLedger(newLedger);
-
-    // Store completed game in history
-    const completedGame = {
-      gameIndex,
-      tickets: currentTickets,
-      prizes: currentPrizes,
-      activePlayers
-    };
-
-    setGames([...games, completedGame]);
     setAppMode('ledger');
   };
 
-  const handleUpdateLineup = (newLineup) => {
-    setActivePlayers(newLineup);
+  const handleUpdateLineup = (newActivePlayers) => {
+    setActivePlayers(newActivePlayers);
   };
 
-  const handleAddPlayerMidSession = (name) => {
-    setPlayers([...players, name]);
-    setActivePlayers([...activePlayers, name]);
-    setCumulativeLedger({ ...cumulativeLedger, [name]: 0 });
+  const handleAddPlayerMidSession = (newPlayer) => {
+    setPlayers([...players, newPlayer]);
+    setActivePlayers([...activePlayers, newPlayer]);
+    
+    setCumulativeLedger(prev => ({
+      ...prev,
+      [newPlayer]: 0
+    }));
 
-    const updatedSaved = Array.from(new Set([...savedPlayers, name]));
-    setSavedPlayers(updatedSaved);
-    localStorage.setItem('housie_players', JSON.stringify(updatedSaved));
+    const newSaved = Array.from(new Set([...savedPlayers, newPlayer])).sort();
+    setSavedPlayers(newSaved);
+    localStorage.setItem('housie_players', JSON.stringify(newSaved));
   };
 
   const handleNextRound = () => {
@@ -155,68 +162,46 @@ export default function App() {
   };
 
   const handleQuickStart = () => {
-    const nextIdx = gameIndex + 1;
-    setGameIndex(nextIdx);
-
-    // Setup next tickets default based on last game active players
-    const defaultTickets = {};
+    // Retain previous tickets and prizes, but filter tickets for active players
+    const nextTickets = {};
     activePlayers.forEach(p => {
-      defaultTickets[p] = currentTickets[p] !== undefined ? currentTickets[p] : 1;
+      nextTickets[p] = currentTickets[p] || 0;
     });
     
-    // Recalculate total tickets and pool
-    const totalTickets = Object.values(defaultTickets).reduce((a, b) => a + b, 0);
-    const totalPool = totalTickets * ticketPrice;
+    // Reset prize winners
+    const nextPrizes = currentPrizes.map(p => ({
+      ...p,
+      winners: [],
+      winningNumber: null
+    }));
 
-    // Copy prize presets with updated pool value
-    const lastGame = games[games.length - 1];
-    const pct = lastGame ? lastGame.prizes.map(p => p.pct) : [15, 15, 15, 15, 40];
-    
-    const finalValues = getRoundedDistribution(totalPool, pct);
-    const defaultPrizes = [
-      { id: 'jaldi5', name: 'Jaldi 5 (Early 5)', pct: pct[0], value: finalValues[0], winners: [], winningNumber: null },
-      { id: 'line1', name: '1st Line (Top)', pct: pct[1], value: finalValues[1], winners: [], winningNumber: null },
-      { id: 'line2', name: '2nd Line (Middle)', pct: pct[2], value: finalValues[2], winners: [], winningNumber: null },
-      { id: 'line3', name: '3rd Line (Bottom)', pct: pct[3], value: finalValues[3], winners: [], winningNumber: null },
-      { id: 'fullhousie', name: 'Full Housie', pct: pct[4], value: finalValues[4], winners: [], winningNumber: null }
-    ];
-
-    setCurrentTickets(defaultTickets);
-    setCurrentPrizes(defaultPrizes);
+    setCurrentTickets(nextTickets);
+    setCurrentPrizes(nextPrizes);
+    setGameIndex(gameIndex + 1);
     setAppMode('board');
   };
 
   const handleCustomSetupStart = (setupData) => {
-    const nextIdx = gameIndex + 1;
-    setGameIndex(nextIdx);
     setCurrentTickets(setupData.tickets);
     setCurrentPrizes(setupData.prizes);
+    setGameIndex(gameIndex + 1);
     setAppMode('board');
   };
 
   const handleEndSession = () => {
-    if (!window.confirm("Are you sure you want to end the session? This will lock current scores and show final payouts.")) return;
     setAppMode('final');
   };
 
-  const handleDeleteSavedPlayer = (name) => {
-    const updated = savedPlayers.filter(p => p !== name);
-    setSavedPlayers(updated);
-    localStorage.setItem('housie_players', JSON.stringify(updated));
-  };
-
   const handleExitSession = () => {
-    if (!window.confirm("Are you sure you want to quit this session and reset everything? This action cannot be undone.")) return;
-    setSessionActive(false);
-    setTicketPrice(0);
-    setPlayers([]);
-    setActivePlayers([]);
-    setGames([]);
-    setCumulativeLedger({});
-    setAppMode('setup');
-    setCurrentTickets({});
-    setCurrentPrizes([]);
-    setGameIndex(1);
+    if (confirm("Are you sure you want to end this session? Data will be lost if not exported.")) {
+      setSessionActive(false);
+      setAppMode('setup');
+      setGames([]);
+      setCumulativeLedger({});
+      setCurrentTickets({});
+      setCurrentPrizes([]);
+      localStorage.removeItem('housie_session_state');
+    }
   };
 
   const exportSessionJSON = () => {
@@ -228,11 +213,12 @@ export default function App() {
       cumulativeLedger,
       settlements: calculateSettlements(cumulativeLedger)
     };
+    
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `housie_session_${new Date().toISOString().slice(0,10)}.json`;
+    link.download = `housie_session_${data.timestamp.slice(0,10)}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -277,23 +263,30 @@ export default function App() {
   const finalSettlements = calculateSettlements(cumulativeLedger);
 
   return (
-    <div className="min-h-screen bg-zinc-950 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900/30 via-zinc-950 to-zinc-950 text-zinc-100 flex flex-col justify-between font-sans">
-      {/* Main Container */}
-      <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-5">
-        {/* Inline Navigation Card */}
+    <div className="min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950/80 via-purple-950/20 to-slate-950 text-slate-100 flex flex-col justify-between font-sans selection:bg-cyan-500/30">
+      
+      {/* Background ambient auroras */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-600/10 blur-[120px] mix-blend-screen" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-600/10 blur-[120px] mix-blend-screen" />
+      </div>
+
+      {/* Main Container - Z-index elevates it above auroras */}
+      <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-6 z-10 relative">
+        {/* Inline Navigation Card - Aurora Glass Style */}
         {sessionActive && appMode !== 'final' && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-3 flex justify-between items-center shadow-xl">
-            <div className="flex bg-zinc-950 border border-zinc-850 rounded-xl p-0.5 text-[10px] font-bold">
+          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-3 flex justify-between items-center shadow-2xl">
+            <div className="flex bg-black/40 rounded-2xl p-1 text-[11px] font-bold shadow-inner">
               <button
                 onClick={() => setAppMode('board')}
-                className={`px-3 py-1.5 rounded-lg transition duration-100 ${appMode === 'board' ? 'bg-zinc-100 text-zinc-950 font-black shadow-sm' : 'text-zinc-550 hover:text-zinc-350'}`}
+                className={`px-4 py-2 rounded-xl transition-all duration-200 ${appMode === 'board' ? 'bg-white/15 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)] ring-1 ring-white/20' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}
               >
                 Caller Board
               </button>
               <button
                 disabled={games.length === 0}
                 onClick={() => setAppMode('ledger')}
-                className={`px-3 py-1.5 rounded-lg transition duration-100 disabled:opacity-30 ${appMode === 'ledger' ? 'bg-zinc-100 text-zinc-950 font-black shadow-sm' : 'text-zinc-550 hover:text-zinc-350'}`}
+                className={`px-4 py-2 rounded-xl transition-all duration-200 disabled:opacity-30 ${appMode === 'ledger' ? 'bg-white/15 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)] ring-1 ring-white/20' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}
               >
                 Ledger Standings
               </button>
@@ -301,10 +294,10 @@ export default function App() {
             
             <button
               onClick={handleExitSession}
-              className="p-1.5 bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 rounded-xl text-zinc-500 hover:text-rose-450 transition duration-100 flex items-center justify-center"
+              className="p-2.5 bg-black/40 hover:bg-rose-500/20 border border-transparent hover:border-rose-500/30 rounded-xl text-white/50 hover:text-rose-400 transition-all duration-200 shadow-inner"
               title="Quit Session"
             >
-              <LogOut className="w-4.5 h-4.5" />
+              <LogOut className="w-5 h-5" />
             </button>
           </div>
         )}
@@ -341,26 +334,26 @@ export default function App() {
         )}
 
         {appMode === 'round-setup-prompt' && (
-          <div className="max-w-md mx-auto bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-2xl space-y-6 text-zinc-100 my-4 text-center">
+          <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl space-y-8 text-center">
             <div>
-              <span className="text-[10px] font-black text-zinc-500 tracking-wider uppercase">Setup Round #{gameIndex + 1}</span>
-              <h2 className="text-base font-black mt-1 uppercase tracking-wider">Configure Settings</h2>
+              <span className="text-[11px] font-black text-cyan-400 tracking-widest uppercase shadow-cyan-400/20 drop-shadow-md">Setup Round #{gameIndex + 1}</span>
+              <h2 className="text-2xl font-black mt-2 tracking-wide text-white">Configure Settings</h2>
             </div>
             
-            <p className="text-xxs text-zinc-500 leading-relaxed font-semibold">
+            <p className="text-xs text-slate-300 leading-relaxed font-medium px-2">
               Choose to copy the previous ticket numbers & prize distributions or configure them manually.
             </p>
             
-            <div className="space-y-3">
+            <div className="space-y-4">
               <button
                 onClick={handleQuickStart}
-                className="w-full bg-zinc-100 hover:bg-white text-zinc-950 font-black py-3 rounded-xl transition duration-150 active:scale-95 shadow-md"
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-black py-4 rounded-2xl transition-all duration-200 active:scale-95 shadow-[0_0_20px_rgba(6,182,212,0.3)] tracking-wide"
               >
                 ⚡ Quick Start: Use Same Settings
               </button>
               <button
                 onClick={() => setAppMode('round-setup-custom')}
-                className="w-full bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 text-zinc-300 font-bold py-3 rounded-xl transition duration-150 active:scale-95"
+                className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-slate-200 font-bold py-4 rounded-2xl transition-all duration-200 active:scale-95 tracking-wide"
               >
                 ⚙️ Custom Setup: Configure Tickets
               </button>
@@ -379,23 +372,23 @@ export default function App() {
         )}
 
         {appMode === 'final' && (
-          <div className="max-w-md mx-auto space-y-6 pb-12 my-4">
-            <div className="text-center bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-2xl space-y-2">
-              <Sparkles className="w-10 h-10 text-zinc-400 mx-auto animate-bounce" />
-              <h2 className="text-lg font-black text-zinc-100 uppercase tracking-widest">Session Complete</h2>
-              <p className="text-xxs text-zinc-500 leading-relaxed font-medium">
+          <div className="space-y-6 pb-12">
+            <div className="text-center bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl space-y-3">
+              <Sparkles className="w-12 h-12 text-yellow-400 mx-auto animate-bounce drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+              <h2 className="text-2xl font-black text-white uppercase tracking-widest">Session Complete</h2>
+              <p className="text-xs text-slate-400 leading-relaxed font-medium">
                 P2P settlements have been calculated. Verify payout transactions below.
               </p>
             </div>
 
             {/* Financial Standings Summary */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4">
-              <h3 className="text-xs font-black text-zinc-400 tracking-widest uppercase flex items-center gap-2 border-b border-zinc-805 pb-2.5">
-                <Award className="w-3.5 h-3.5 text-zinc-500" />
+            <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-6 shadow-2xl space-y-5">
+              <h3 className="text-sm font-black text-slate-300 tracking-widest uppercase flex items-center gap-2 border-b border-white/10 pb-4">
+                <Award className="w-5 h-5 text-cyan-400" />
                 Final Session Ledgers
               </h3>
               
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {Object.entries(cumulativeLedger)
                   .sort((a, b) => b[1] - a[1])
                   .map(([player, net]) => {
@@ -411,14 +404,14 @@ export default function App() {
                     }, 0);
 
                     return (
-                      <div key={player} className="flex justify-between items-center p-3.5 bg-zinc-950 border border-zinc-850/60 rounded-xl">
+                      <div key={player} className="flex justify-between items-center p-4 bg-black/40 border border-white/5 rounded-2xl shadow-inner">
                         <div>
-                          <span className="text-base font-extrabold text-zinc-200 block">{player}</span>
-                          <span className="text-xs text-zinc-500 font-semibold mt-0.5 block">
+                          <span className="text-lg font-extrabold text-white block tracking-wide">{player}</span>
+                          <span className="text-xs text-slate-400 font-medium mt-1 block">
                             Total Buy-in: ₹{buyIn} | Winnings: ₹{won.toFixed(0)}
                           </span>
                         </div>
-                        <span className={`text-base font-black ${net > 0 ? 'text-emerald-450' : net < 0 ? 'text-rose-450' : 'text-zinc-500'}`}>
+                        <span className={`text-xl font-black drop-shadow-md ${net > 0 ? 'text-emerald-400' : net < 0 ? 'text-rose-400' : 'text-slate-400'}`}>
                           {net > 0 ? '+' : ''}₹{net.toFixed(2)}
                         </span>
                       </div>
@@ -428,26 +421,28 @@ export default function App() {
             </div>
 
             {/* Recommended payout directions */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4">
-              <h3 className="text-xs font-black text-zinc-400 tracking-widest uppercase flex items-center gap-2 border-b border-zinc-805 pb-2.5">
-                <ArrowLeftRight className="w-3.5 h-3.5 text-zinc-500" />
+            <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-6 shadow-2xl space-y-5">
+              <h3 className="text-sm font-black text-slate-300 tracking-widest uppercase flex items-center gap-2 border-b border-white/10 pb-4">
+                <ArrowLeftRight className="w-5 h-5 text-cyan-400" />
                 Recommended Settlements
               </h3>
               
-              <div className="bg-zinc-950 border border-zinc-850 rounded-2xl p-4 space-y-2.5">
+              <div className="bg-black/40 border border-white/5 rounded-[2rem] p-5 space-y-3 shadow-inner">
                 {finalSettlements.length === 0 ? (
-                  <p className="text-xs text-zinc-500 italic text-center py-2 font-medium">
+                  <p className="text-sm text-slate-400 italic text-center py-4 font-medium">
                     No transactions required. All net payouts equal zero.
                   </p>
                 ) : (
                   finalSettlements.map((t, idx) => (
-                    <div key={idx} className="flex items-center justify-between bg-zinc-900 border border-zinc-800/80 p-4 rounded-xl">
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="font-extrabold text-zinc-200 text-sm">{t.from}</span>
-                        <ChevronRight className="w-4.5 h-4.5 text-rose-400 animate-pulse" />
-                        <span className="font-extrabold text-zinc-200 text-sm">{t.to}</span>
+                    <div key={idx} className="flex items-center justify-between bg-white/5 border border-white/10 p-5 rounded-2xl shadow-sm hover:bg-white/10 transition-colors">
+                      <div className="flex items-center gap-3 text-base">
+                        <span className="font-extrabold text-slate-100">{t.from}</span>
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-rose-500/20 border border-rose-500/30">
+                          <ChevronRight className="w-5 h-5 text-rose-400" />
+                        </div>
+                        <span className="font-extrabold text-slate-100">{t.to}</span>
                       </div>
-                      <span className="font-black text-emerald-450 text-base">
+                      <span className="font-black text-emerald-400 text-xl drop-shadow-md">
                         ₹{t.amount.toFixed(2)}
                       </span>
                     </div>
@@ -457,16 +452,16 @@ export default function App() {
             </div>
 
             {/* Export Options */}
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <button
                 onClick={exportSessionCSV}
-                className="flex-1 bg-zinc-905 border border-zinc-850 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 font-semibold py-3 rounded-2xl transition text-xs flex items-center justify-center cursor-pointer active:scale-95 duration-100"
+                className="flex-1 bg-white/10 border border-white/10 hover:bg-white/20 text-slate-200 font-bold py-4 rounded-2xl transition-all duration-200 text-sm flex items-center justify-center cursor-pointer active:scale-95 tracking-wide"
               >
                 ⬇️ Export CSV Ledger
               </button>
               <button
                 onClick={exportSessionJSON}
-                className="flex-1 bg-zinc-905 border border-zinc-850 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 font-semibold py-3 rounded-2xl transition text-xs flex items-center justify-center cursor-pointer active:scale-95 duration-100"
+                className="flex-1 bg-white/10 border border-white/10 hover:bg-white/20 text-slate-200 font-bold py-4 rounded-2xl transition-all duration-200 text-sm flex items-center justify-center cursor-pointer active:scale-95 tracking-wide"
               >
                 ⬇️ Export JSON State
               </button>
@@ -475,7 +470,7 @@ export default function App() {
             {/* Start New Session */}
             <button
               onClick={handleExitSession}
-              className="w-full bg-zinc-100 hover:bg-white text-zinc-950 font-black py-3.5 rounded-2xl shadow-md transition duration-150 active:scale-95"
+              className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-black py-5 rounded-2xl shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-200 active:scale-95 tracking-widest uppercase text-sm mt-4"
             >
               Start New Session
             </button>
@@ -484,8 +479,8 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="text-center py-4 bg-zinc-950 border-t border-zinc-900/60">
-        <p className="text-xxs font-semibold text-zinc-650 tracking-widest uppercase">
+      <footer className="text-center py-6 bg-black/40 backdrop-blur-xl border-t border-white/5 relative z-10">
+        <p className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase">
           Housy CLI to Mobile Engine • 2026
         </p>
       </footer>

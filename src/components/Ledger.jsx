@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeftRight, Users, ChevronRight, Ban, Plus, Sparkles, Trophy, ListCollapse, Award } from 'lucide-react';
+import { ArrowLeftRight, Users, ChevronRight, Ban, Plus, Sparkles, Trophy, ListCollapse, Award, History } from 'lucide-react';
 import { calculateSettlements } from '../utils/settlement';
 
 export default function Ledger({ 
@@ -50,27 +50,29 @@ export default function Ledger({
   };
 
   return (
-    <div className="max-w-md mx-auto space-y-6 pb-12">
+    <div className="max-w-md mx-auto space-y-6 pb-12 relative z-10">
       {/* Switcher Tab between Current Round & Cumulative */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-1.5 flex justify-between items-center shadow-lg w-full">
+      <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] p-2 flex justify-between items-center shadow-2xl w-full">
         <button
           onClick={() => setActiveTab('round')}
-          className={`flex-1 text-center py-3 rounded-2xl text-xs font-black transition duration-150 uppercase tracking-widest ${
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[1.5rem] text-xs font-black transition-all duration-200 uppercase tracking-widest ${
             activeTab === 'round' 
-              ? 'bg-zinc-100 text-zinc-950 shadow-md' 
-              : 'text-zinc-400 hover:text-zinc-200'
+              ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/50 shadow-[inset_0_0_15px_rgba(6,182,212,0.2)]' 
+              : 'text-slate-400 hover:text-white hover:bg-white/5'
           }`}
         >
+          <History className="w-4 h-4" />
           Round Recap
         </button>
         <button
           onClick={() => setActiveTab('session')}
-          className={`flex-1 text-center py-3 rounded-2xl text-xs font-black transition duration-150 uppercase tracking-widest ${
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[1.5rem] text-xs font-black transition-all duration-200 uppercase tracking-widest ${
             activeTab === 'session' 
-              ? 'bg-zinc-100 text-zinc-950 shadow-md' 
-              : 'text-zinc-400 hover:text-zinc-200'
+              ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/50 shadow-[inset_0_0_15px_rgba(6,182,212,0.2)]' 
+              : 'text-slate-400 hover:text-white hover:bg-white/5'
           }`}
         >
+          <Award className="w-4 h-4" />
           Session Ledger
         </button>
       </div>
@@ -78,9 +80,9 @@ export default function Ledger({
       {activeTab === 'round' && lastGame ? (
         <div className="space-y-6">
           {/* Detailed Prize Winners for last game */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4">
-            <h3 className="text-sm font-black text-zinc-450 tracking-widest uppercase flex items-center gap-2 border-b border-zinc-800 pb-3">
-              <Trophy className="w-5 h-5 text-zinc-400" />
+          <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-6 shadow-2xl space-y-5">
+            <h3 className="text-xs font-black text-slate-300 tracking-[0.2em] uppercase flex items-center gap-2 border-b border-white/10 pb-4">
+              <Trophy className="w-4 h-4 text-yellow-400" />
               Round #{lastGame.gameIndex} Winners
             </h3>
             
@@ -90,25 +92,25 @@ export default function Ledger({
                 return (
                   <div 
                     key={p.id}
-                    className="p-4 bg-zinc-950 border border-zinc-850/60 rounded-2xl flex flex-col gap-2 shadow-inner"
+                    className="p-5 bg-black/40 border border-white/5 rounded-[1.5rem] flex flex-col gap-3 shadow-inner"
                   >
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-black text-zinc-100">{p.name}</span>
-                      <span className="text-xs font-black bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded text-emerald-400">
+                      <span className="text-sm font-black text-white tracking-wide">{p.name}</span>
+                      <span className="text-xs font-black bg-emerald-500/20 border border-emerald-400/30 px-3 py-1.5 rounded-xl text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
                         ₹{p.value}
                       </span>
                     </div>
                     {hasWinners ? (
-                      <div className="flex flex-col gap-1 mt-0.5">
-                        <span className="text-xs text-zinc-400 font-bold">
-                          Claimed by: <span className="text-zinc-50 font-black">{p.winners.join(', ')}</span>
+                      <div className="flex flex-col gap-1.5 mt-1">
+                        <span className="text-xs text-slate-400 font-bold bg-white/5 p-2 rounded-xl">
+                          Claimed by: <span className="text-white font-black">{p.winners.join(', ')}</span>
                         </span>
-                        <span className="text-xxs text-zinc-500 font-bold uppercase tracking-wider">
+                        <span className="text-[10px] text-cyan-400/80 font-black uppercase tracking-[0.2em]">
                           Drawn on Number {p.winningNumber} {p.winners.length > 1 && `(₹${(p.value / p.winners.length).toFixed(0)} each)`}
                         </span>
                       </div>
                     ) : (
-                      <span className="text-xs text-zinc-600 italic font-semibold">Unclaimed</span>
+                      <span className="text-xs text-slate-500 italic font-semibold">Unclaimed</span>
                     )}
                   </div>
                 );
@@ -117,13 +119,14 @@ export default function Ledger({
           </div>
 
           {/* Round Individual Balances */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4 text-zinc-100">
-            <h3 className="text-sm font-black text-zinc-450 tracking-widest uppercase flex items-center gap-2 border-b border-zinc-800 pb-3">
-              <ListCollapse className="w-5 h-5 text-zinc-400" />
+          <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-6 shadow-2xl space-y-5 text-slate-100 relative overflow-hidden">
+            <div className="absolute top-[-40px] right-[-40px] w-24 h-24 bg-rose-500/20 blur-[50px] rounded-full pointer-events-none" />
+            <h3 className="text-xs font-black text-slate-300 tracking-[0.2em] uppercase flex items-center gap-2 border-b border-white/10 pb-4 relative z-10">
+              <ListCollapse className="w-4 h-4 text-cyan-400" />
               Round Balances
             </h3>
             
-            <div className="space-y-2.5">
+            <div className="space-y-3 relative z-10">
               {players.map(player => {
                 const isActive = lastGame.activePlayers.includes(player);
                 const roundTickets = isActive ? (lastGame.tickets[player] || 0) : 0;
@@ -140,24 +143,24 @@ export default function Ledger({
                 return (
                   <div 
                     key={player}
-                    className="flex items-center justify-between p-3.5 bg-zinc-950 border border-zinc-850/60 rounded-2xl"
+                    className="flex items-center justify-between p-4 bg-black/40 border border-white/5 rounded-2xl shadow-inner hover:bg-black/60 transition-colors"
                   >
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-base font-extrabold text-zinc-200">{player}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-base font-extrabold text-white tracking-wide">{player}</span>
                         {!isActive && (
-                          <span className="text-[9px] bg-zinc-900 border border-zinc-800 text-zinc-650 font-black px-2 py-0.5 rounded uppercase tracking-wider">
+                          <span className="text-[9px] bg-white/5 border border-white/10 text-slate-400 font-black px-2 py-0.5 rounded-md uppercase tracking-[0.2em]">
                             Spectator
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-zinc-500 font-semibold mt-0.5 block">
+                      <span className="text-[11px] text-slate-400 font-bold mt-1 block">
                         Buy-in: ₹{buyIn} | Winnings: ₹{roundWinnings.toFixed(0)}
                       </span>
                     </div>
 
-                    <span className={`text-base font-black ${
-                      net > 0 ? 'text-emerald-450' : net < 0 ? 'text-rose-450' : 'text-zinc-500'
+                    <span className={`text-lg font-black drop-shadow-md ${
+                      net > 0 ? 'text-emerald-400' : net < 0 ? 'text-rose-400' : 'text-slate-500'
                     }`}>
                       {net > 0 ? '+' : ''}₹{net.toFixed(2)}
                     </span>
@@ -170,13 +173,14 @@ export default function Ledger({
       ) : (
         <div className="space-y-6">
           {/* Cumulative Standings */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4 text-zinc-100">
-            <h3 className="text-sm font-black text-zinc-450 tracking-widest uppercase flex items-center gap-2 border-b border-zinc-800 pb-3">
-              <Award className="w-5 h-5 text-zinc-400" />
+          <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-6 shadow-2xl space-y-5 text-slate-100 relative overflow-hidden">
+            <div className="absolute top-[-40px] left-[-40px] w-24 h-24 bg-emerald-500/20 blur-[50px] rounded-full pointer-events-none" />
+            <h3 className="text-xs font-black text-slate-300 tracking-[0.2em] uppercase flex items-center gap-2 border-b border-white/10 pb-4 relative z-10">
+              <Award className="w-4 h-4 text-emerald-400" />
               Session Rankings
             </h3>
             
-            <div className="space-y-2.5">
+            <div className="space-y-3 relative z-10">
               {Object.entries(cumulativeLedger)
                 .sort((a, b) => b[1] - a[1])
                 .map(([player, net]) => {
@@ -196,24 +200,24 @@ export default function Ledger({
                   return (
                     <div 
                       key={player}
-                      className="flex items-center justify-between p-3.5 bg-zinc-950 border border-zinc-850/60 rounded-2xl"
+                      className="flex items-center justify-between p-4 bg-black/40 border border-white/5 rounded-2xl shadow-inner hover:bg-black/60 transition-colors"
                     >
                       <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-base font-extrabold text-zinc-200">{player}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-base font-extrabold text-white tracking-wide">{player}</span>
                           {!isActive && (
-                            <span className="text-[9px] bg-zinc-900 border border-zinc-800 text-zinc-600 font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                            <span className="text-[9px] bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold px-2 py-0.5 rounded-md uppercase tracking-[0.2em]">
                               Excluded
                             </span>
                           )}
                         </div>
-                        <span className="text-xs text-zinc-500 font-semibold mt-0.5 block">
+                        <span className="text-[11px] text-slate-400 font-bold mt-1 block">
                           Total Buy-in: ₹{buyIn} | Winnings: ₹{won.toFixed(0)}
                         </span>
                       </div>
 
-                      <span className={`text-base font-black ${
-                        net > 0 ? 'text-emerald-450' : net < 0 ? 'text-rose-450' : 'text-zinc-500'
+                      <span className={`text-lg font-black drop-shadow-md ${
+                        net > 0 ? 'text-emerald-400' : net < 0 ? 'text-rose-400' : 'text-slate-500'
                       }`}>
                         {net > 0 ? '+' : ''}₹{net.toFixed(2)}
                       </span>
@@ -223,30 +227,32 @@ export default function Ledger({
             </div>
           </div>
 
-          {/* Settlements */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4">
-            <h3 className="text-sm font-black text-zinc-450 tracking-widest uppercase flex items-center gap-2">
-              <ArrowLeftRight className="w-5 h-5 text-zinc-400" />
+          {/* Settlements - Premium Transaction Style */}
+          <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-6 shadow-2xl space-y-5 relative overflow-hidden">
+            <h3 className="text-xs font-black text-slate-300 tracking-[0.2em] uppercase flex items-center gap-2">
+              <ArrowLeftRight className="w-4 h-4 text-cyan-400" />
               Recommended Settlements
             </h3>
             
-            <div className="bg-zinc-950 border border-zinc-850 rounded-2xl p-4 space-y-2.5">
+            <div className="bg-black/40 border border-white/5 rounded-3xl p-5 space-y-3 shadow-inner">
               {settlements.length === 0 ? (
-                <p className="text-xs text-zinc-500 text-center py-2 font-medium italic">
+                <p className="text-xs text-slate-500 text-center py-4 font-bold italic">
                   No transactions required. All net payouts equal zero.
                 </p>
               ) : (
                 settlements.map((t, idx) => (
                   <div 
                     key={idx} 
-                    className="flex items-center justify-between bg-zinc-900 border border-zinc-800/80 p-4 rounded-xl text-sm"
+                    className="flex items-center justify-between bg-white/5 border border-white/10 p-5 rounded-2xl shadow-sm hover:bg-white/10 transition-colors"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="font-extrabold text-zinc-200 text-sm">{t.from}</span>
-                      <ChevronRight className="w-4.5 h-4.5 text-rose-400" />
-                      <span className="font-extrabold text-zinc-200 text-sm">{t.to}</span>
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="font-extrabold text-white text-base">{t.from}</span>
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-rose-500/20 border border-rose-500/30">
+                        <ChevronRight className="w-4 h-4 text-rose-400" />
+                      </div>
+                      <span className="font-extrabold text-white text-base">{t.to}</span>
                     </div>
-                    <span className="font-black text-emerald-450 text-base">
+                    <span className="font-black text-emerald-400 text-lg drop-shadow-[0_0_10px_rgba(16,185,129,0.4)]">
                       ₹{t.amount.toFixed(2)}
                     </span>
                   </div>
@@ -257,58 +263,58 @@ export default function Ledger({
         </div>
       )}
 
-      {/* Lineup Management */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-xs font-black text-zinc-400 tracking-widest uppercase flex items-center gap-2">
-            <Users className="w-4 h-4 text-zinc-500" />
-            Manage Next Round Lineup
+      {/* Lineup Management Bento */}
+      <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-6 shadow-2xl space-y-5">
+        <div className="flex justify-between items-center border-b border-white/10 pb-4">
+          <h3 className="text-xs font-black text-slate-300 tracking-[0.2em] uppercase flex items-center gap-2">
+            <Users className="w-4 h-4 text-cyan-400" />
+            Next Round Lineup
           </h3>
           <button 
             onClick={() => setShowAddPlayer(!showAddPlayer)}
-            className="text-[10px] font-black text-zinc-400 hover:text-zinc-200 transition duration-150 flex items-center gap-1 uppercase tracking-widest"
+            className="text-[10px] font-black text-cyan-400 hover:text-cyan-300 transition duration-150 flex items-center gap-1 uppercase tracking-[0.2em] bg-cyan-500/10 px-3 py-1.5 rounded-lg border border-cyan-500/20"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3.5 h-3.5" />
             Add Player
           </button>
         </div>
 
         {showAddPlayer && (
-          <div className="flex gap-2 bg-zinc-950 border border-zinc-850 rounded-xl p-2.5">
+          <div className="flex gap-3 bg-black/40 border border-white/5 rounded-2xl p-4 shadow-inner">
             <input 
               type="text" 
               value={newPlayerName}
               onChange={(e) => setNewPlayerName(e.target.value)}
               placeholder="Name..."
-              className="flex-1 bg-zinc-900 border border-zinc-805 focus:border-zinc-500 rounded-lg px-3 py-2 text-xs text-zinc-200 outline-none"
+              className="flex-1 bg-white/5 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 rounded-xl px-4 py-3 text-sm text-white outline-none transition-all duration-200"
             />
             <button 
               onClick={handleAddPlayer}
-              className="bg-zinc-100 hover:bg-white text-zinc-950 rounded-lg px-4 py-2 text-xs font-bold transition"
+              className="bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-xl px-5 py-3 text-sm font-bold transition-all duration-200 active:scale-95 shadow-sm"
             >
               Add
             </button>
           </div>
         )}
 
-        <div className="bg-zinc-950 border border-zinc-850 rounded-2xl p-4">
-          <p className="text-[10px] text-zinc-500 mb-3 font-bold uppercase tracking-widest">
-            Exclusions (Check/Uncheck players for the next round)
+        <div className="bg-black/40 border border-white/5 rounded-[1.5rem] p-5 shadow-inner">
+          <p className="text-[10px] text-slate-500 mb-4 font-black uppercase tracking-[0.2em]">
+            Exclusions (Toggle for the next round)
           </p>
-          <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1">
+          <div className="flex flex-wrap gap-2.5 max-h-40 overflow-y-auto pr-1">
             {players.map((p) => {
               const isActive = activePlayers.includes(p);
               return (
                 <button
                   key={p}
                   onClick={() => togglePlayerExclusion(p)}
-                  className={`px-3 py-1.5 rounded-xl border text-[10px] font-bold transition flex items-center gap-1.5 ${
+                  className={`px-4 py-2 rounded-xl border text-[11px] font-bold transition-all duration-200 flex items-center gap-2 ${
                     isActive 
-                      ? 'bg-zinc-900 border-zinc-500 text-zinc-100 shadow-sm' 
-                      : 'bg-zinc-900/40 border-zinc-850 text-zinc-500 hover:border-zinc-800'
+                      ? 'bg-cyan-500/20 border-cyan-400/50 text-white shadow-[0_0_10px_rgba(6,182,212,0.2)]' 
+                      : 'bg-white/5 border-white/10 text-slate-500 hover:text-white hover:border-white/20'
                   }`}
                 >
-                  <Ban className={`w-3.5 h-3.5 ${isActive ? 'opacity-20' : 'text-rose-500 opacity-100'}`} />
+                  <Ban className={`w-3.5 h-3.5 transition-all duration-200 ${isActive ? 'opacity-0 w-0 h-0 hidden' : 'text-rose-500 opacity-100'}`} />
                   {p}
                 </button>
               );
@@ -318,18 +324,18 @@ export default function Ledger({
       </div>
 
       {/* Navigation Actions */}
-      <div className="flex gap-3">
+      <div className="flex gap-4">
         <button
           onClick={onEndSession}
-          className="flex-1 bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 hover:border-zinc-800 text-zinc-400 hover:text-zinc-200 font-semibold py-4 px-4 rounded-2xl transition duration-150 active:scale-95 text-xs uppercase tracking-wider"
+          className="flex-1 bg-black/40 border border-white/10 hover:bg-rose-500/20 hover:border-rose-500/40 hover:text-rose-400 text-slate-400 font-bold py-5 px-4 rounded-2xl transition-all duration-200 active:scale-95 text-[11px] uppercase tracking-[0.2em] shadow-inner"
         >
           End Session
         </button>
         <button
           onClick={onNextRound}
-          className="flex-[2] bg-zinc-100 hover:bg-white text-zinc-950 font-black py-4 px-4 rounded-2xl flex items-center justify-center gap-2 transition duration-150 active:scale-95 shadow-md text-xs uppercase tracking-wider"
+          className="flex-[2] bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-black py-5 px-4 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 shadow-[0_0_20px_rgba(6,182,212,0.4)] text-[11px] uppercase tracking-[0.2em]"
         >
-          <Sparkles className="w-4 h-4 fill-current text-zinc-950 animate-spin" style={{ animationDuration: '3s' }} />
+          <Sparkles className="w-4 h-4 fill-current text-white animate-spin drop-shadow-md" style={{ animationDuration: '3s' }} />
           Start Next Round
         </button>
       </div>

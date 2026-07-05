@@ -102,78 +102,81 @@ export default function Setup({
   };
 
   return (
-    <div className="max-w-md mx-auto bg-zinc-900 border border-zinc-800/80 rounded-3xl p-6 shadow-2xl text-zinc-100 my-4">
+    <div className="max-w-md mx-auto bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl text-slate-100 my-4 relative overflow-hidden">
+      {/* Decorative Glow inside card */}
+      <div className="absolute top-[-50px] left-[-50px] w-32 h-32 bg-cyan-500/20 blur-[60px] rounded-full pointer-events-none" />
+      
       {/* Title */}
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-black tracking-tight text-zinc-50 uppercase tracking-widest">
+      <div className="text-center mb-8 relative z-10">
+        <h1 className="text-3xl font-black tracking-widest text-white uppercase drop-shadow-md">
           Housy Ledger
         </h1>
-        <p className="text-xxs text-zinc-500 mt-1 font-bold tracking-widest uppercase">Session Setup Panel</p>
+        <p className="text-[10px] text-cyan-400 mt-2 font-black tracking-[0.3em] uppercase shadow-cyan-400/20">Session Setup Panel</p>
       </div>
 
       {step === 1 ? (
-        <div className="space-y-6">
-          {/* Ticket Price Setting */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-              <Banknote className="w-3.5 h-3.5 text-zinc-500" />
+        <div className="space-y-6 relative z-10">
+          {/* Ticket Price Setting (Bento Box 1) */}
+          <div className="bg-black/40 border border-white/5 rounded-3xl p-5 shadow-inner space-y-3">
+            <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <Banknote className="w-4 h-4 text-cyan-400" />
               Ticket Price (₹)
             </label>
             <input
               type="number"
               value={ticketPrice}
               onChange={(e) => setTicketPrice(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
-              className="w-full bg-zinc-950 border border-zinc-850 focus:border-zinc-500 rounded-xl px-4 py-3 text-lg font-black text-center text-zinc-100 outline-none transition duration-150"
+              className="w-full bg-white/5 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 rounded-2xl px-5 py-4 text-2xl font-black text-center text-white outline-none transition-all duration-200"
             />
           </div>
 
-          {/* Add Players */}
-          <div className="space-y-3">
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-              <Users className="w-3.5 h-3.5 text-zinc-500" />
+          {/* Add Players (Bento Box 2) */}
+          <div className="bg-black/40 border border-white/5 rounded-3xl p-5 shadow-inner space-y-4">
+            <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <Users className="w-4 h-4 text-cyan-400" />
               Players in Session
             </label>
             
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <input
                 type="text"
                 value={newPlayerName}
                 onChange={(e) => setNewPlayerName(e.target.value)}
                 placeholder="Name..."
                 onKeyDown={(e) => e.key === 'Enter' && addPlayer(newPlayerName)}
-                className="flex-1 bg-zinc-950 border border-zinc-850 focus:border-zinc-500 rounded-xl px-4 py-2.5 text-sm outline-none transition duration-150 text-zinc-200"
+                className="flex-1 bg-white/5 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 rounded-2xl px-4 py-3.5 text-sm outline-none transition-all duration-200 text-white placeholder-slate-500"
               />
               <button
                 onClick={() => addPlayer(newPlayerName)}
-                className="bg-zinc-100 hover:bg-white text-zinc-950 font-bold rounded-xl px-4 flex items-center justify-center transition duration-150 active:scale-95"
+                className="bg-white/10 hover:bg-white/20 border border-white/10 text-white font-bold rounded-2xl px-5 flex items-center justify-center transition-all duration-200 active:scale-95"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-5 h-5" />
               </button>
             </div>
 
             {/* Imported Quick Lists */}
             {availableToImport.length > 0 && (
-              <div className="bg-zinc-950/40 rounded-xl p-3 border border-zinc-850/60">
-                <p className="text-[10px] text-zinc-500 font-bold mb-2 uppercase tracking-widest">Quick Import</p>
-                <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+              <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                <p className="text-[10px] text-cyan-500/80 font-black mb-3 uppercase tracking-widest">Quick Import</p>
+                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto pr-1">
                   {availableToImport.map((p) => (
                     <div
                       key={p}
-                      className="bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-400 rounded-lg flex items-center overflow-hidden transition"
+                      className="bg-black/50 border border-white/10 text-xs text-slate-300 rounded-xl flex items-center overflow-hidden transition"
                     >
                       <button
                         onClick={() => addPlayer(p)}
-                        className="hover:bg-zinc-800 hover:text-zinc-200 px-2.5 py-1.5 flex items-center gap-1 border-r border-zinc-800/80 font-bold transition duration-150"
+                        className="hover:bg-white/10 hover:text-white px-3 py-2 flex items-center gap-1.5 border-r border-white/10 font-bold transition duration-150"
                       >
-                        <UserPlus className="w-3 h-3 text-zinc-500" />
+                        <UserPlus className="w-3.5 h-3.5 text-cyan-500/80" />
                         {p}
                       </button>
                       <button
                         onClick={() => onDeleteSavedPlayer && onDeleteSavedPlayer(p)}
-                        className="hover:bg-rose-950/30 text-zinc-500 hover:text-rose-400 px-2 py-1.5 transition duration-150"
+                        className="hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 px-2.5 py-2 transition duration-150"
                         title="Delete permanently"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))}
@@ -182,20 +185,20 @@ export default function Setup({
             )}
 
             {/* Added Players List */}
-            <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-855 min-h-36 max-h-60 overflow-y-auto space-y-1.5">
+            <div className="bg-black/50 rounded-2xl p-4 border border-white/5 min-h-[140px] max-h-60 overflow-y-auto space-y-2">
               {players.length === 0 ? (
-                <div className="text-center text-zinc-500 text-xs py-8 italic font-medium">
+                <div className="text-center text-slate-500 text-sm py-10 italic font-medium">
                   No players added yet.
                 </div>
               ) : (
                 players.map((p) => (
-                  <div key={p} className="flex justify-between items-center bg-zinc-900/60 border border-zinc-800/40 rounded-lg px-3 py-2 text-sm">
-                    <span className="font-bold text-zinc-200">{p}</span>
+                  <div key={p} className="flex justify-between items-center bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm hover:bg-white/10 transition-colors">
+                    <span className="font-extrabold text-white tracking-wide">{p}</span>
                     <button
                       onClick={() => removePlayer(p)}
-                      className="text-zinc-500 hover:text-rose-400 transition duration-150"
+                      className="text-slate-500 hover:text-rose-400 bg-rose-500/0 hover:bg-rose-500/10 p-1.5 rounded-lg transition-all duration-150"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 ))
@@ -206,37 +209,37 @@ export default function Setup({
           <button
             onClick={handleNextStep}
             disabled={players.length < 2}
-            className="w-full bg-zinc-100 hover:bg-white disabled:bg-zinc-800 text-zinc-950 font-bold rounded-xl py-3 text-sm flex items-center justify-center gap-2 transition duration-150 active:scale-95 disabled:text-zinc-500 disabled:cursor-not-allowed disabled:transform-none"
+            className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white font-black rounded-2xl py-4 text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(6,182,212,0.3)] disabled:shadow-none"
           >
             Configure Tickets & Prizes
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       ) : (
-        <div className="space-y-6">
-          {/* Ticket Counts Allocation */}
-          <div className="space-y-3">
-            <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-              <Users className="w-3.5 h-3.5 text-zinc-500" />
+        <div className="space-y-6 relative z-10">
+          {/* Ticket Counts Allocation (Bento Box 1) */}
+          <div className="bg-black/40 border border-white/5 rounded-3xl p-5 shadow-inner space-y-4">
+            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <Users className="w-4 h-4 text-cyan-400" />
               Allocated Tickets
             </h2>
-            <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-850 max-h-56 overflow-y-auto space-y-2">
+            <div className="bg-black/50 rounded-2xl p-4 border border-white/5 max-h-56 overflow-y-auto space-y-2">
               {players.map((p) => (
-                <div key={p} className="flex justify-between items-center bg-zinc-900/40 border border-zinc-800/20 rounded-lg px-3 py-2">
-                  <span className="text-sm font-bold text-zinc-300">{p}</span>
-                  <div className="flex items-center gap-2">
+                <div key={p} className="flex justify-between items-center bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl px-4 py-2.5 transition-colors">
+                  <span className="text-sm font-extrabold text-white">{p}</span>
+                  <div className="flex items-center gap-3">
                     <button
                       onClick={() => setTickets({ ...tickets, [p]: Math.max(0, (tickets[p] || 0) - 1) })}
-                      className="w-7 h-7 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-bold rounded-lg flex items-center justify-center active:scale-95 transition duration-100"
+                      className="w-9 h-9 bg-white/10 hover:bg-white/20 border border-white/10 text-white font-black rounded-xl flex items-center justify-center active:scale-95 transition-all duration-100"
                     >
                       -
                     </button>
-                    <span className="w-8 text-center text-sm font-black text-zinc-100">
+                    <span className="w-8 text-center text-lg font-black text-white drop-shadow-md">
                       {tickets[p] || 0}
                     </span>
                     <button
                       onClick={() => setTickets({ ...tickets, [p]: (tickets[p] || 0) + 1 })}
-                      className="w-7 h-7 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-bold rounded-lg flex items-center justify-center active:scale-95 transition duration-100"
+                      className="w-9 h-9 bg-white/10 hover:bg-white/20 border border-white/10 text-white font-black rounded-xl flex items-center justify-center active:scale-95 transition-all duration-100"
                     >
                       +
                     </button>
@@ -246,42 +249,61 @@ export default function Setup({
             </div>
           </div>
 
-          {/* Prize Presets */}
-          <div className="space-y-3">
-            <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-              <Award className="w-3.5 h-3.5 text-zinc-500" />
+          {/* Prize Presets (Bento Box 2) */}
+          <div className="bg-black/40 border border-white/5 rounded-3xl p-5 shadow-inner space-y-4">
+            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <Award className="w-4 h-4 text-cyan-400" />
               Prize Preset Distribution
             </h2>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {PRESETS.map((preset, idx) => (
                 <button
                   key={preset.name}
                   onClick={() => setSelectedPreset(idx)}
-                  className={`w-full text-left p-3.5 rounded-xl border transition flex flex-col gap-0.5 ${
+                  className={`w-full text-left p-4 rounded-2xl border transition-all duration-200 flex flex-col gap-3 ${
                     selectedPreset === idx
-                      ? 'bg-zinc-900 border-zinc-400'
-                      : 'bg-zinc-950 border-zinc-850 hover:border-zinc-700'
+                      ? 'bg-cyan-500/10 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
+                      : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
                   }`}
                 >
-                  <span className={`text-xs font-black ${selectedPreset === idx ? 'text-zinc-50' : 'text-zinc-300'}`}>
-                    {preset.name}
-                  </span>
-                  <span className="text-[10px] text-zinc-500">{preset.description}</span>
+                  <div className="flex justify-between items-center">
+                    <span className={`text-sm font-black tracking-wide ${selectedPreset === idx ? 'text-cyan-300' : 'text-slate-200'}`}>
+                      {preset.name}
+                    </span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${selectedPreset === idx ? 'bg-cyan-500/20 text-cyan-300' : 'bg-white/10 text-slate-400'}`}>
+                      {preset.pct[4]}% Housie
+                    </span>
+                  </div>
+                  
+                  {/* Visual Distribution Bar */}
+                  <div className="w-full h-2 rounded-full overflow-hidden flex opacity-90">
+                    <div style={{ width: `${preset.pct[0]}%` }} className="bg-amber-400" title={`Jaldi 5: ${preset.pct[0]}%`} />
+                    <div style={{ width: `${preset.pct[1]}%` }} className="bg-emerald-400" title={`Line 1: ${preset.pct[1]}%`} />
+                    <div style={{ width: `${preset.pct[2]}%` }} className="bg-emerald-500" title={`Line 2: ${preset.pct[2]}%`} />
+                    <div style={{ width: `${preset.pct[3]}%` }} className="bg-emerald-600" title={`Line 3: ${preset.pct[3]}%`} />
+                    <div style={{ width: `${preset.pct[4]}%` }} className="bg-fuchsia-500" title={`Full Housie: ${preset.pct[4]}%`} />
+                  </div>
+                  
+                  <div className="flex justify-between text-[9px] font-bold uppercase tracking-widest text-slate-500">
+                    <span className="text-amber-400/80">Jaldi</span>
+                    <span className="text-emerald-400/80">Lines</span>
+                    <span className="text-fuchsia-400/80">Housie</span>
+                  </div>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-3 pt-2">
             <button
               onClick={() => setStep(1)}
-              className="flex-1 bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 text-zinc-300 rounded-xl py-3 text-xs font-bold transition duration-150"
+              className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-200 rounded-2xl py-4 text-sm font-bold transition-all duration-200 active:scale-95"
             >
               Back
             </button>
             <button
               onClick={handleStartSession}
-              className="flex-[2] bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl py-3 text-xs font-black flex items-center justify-center gap-2 transition duration-150 active:scale-95"
+              className="flex-[2] bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white rounded-2xl py-4 text-sm font-black flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 shadow-[0_0_20px_rgba(6,182,212,0.3)]"
             >
               Start Game
             </button>
